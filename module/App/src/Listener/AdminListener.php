@@ -24,6 +24,8 @@ class AdminListener extends AbstractListenerAggregate implements LoggerAwareInte
 {
     use LoggerAwareInterfaceTrait;
 
+    /** @var array<mixed> $config */
+    protected $config;
     /** @var AbstractAppController $controller */
     protected $controller;
     /** @var ControllerManager $controllerManager */
@@ -37,7 +39,9 @@ class AdminListener extends AbstractListenerAggregate implements LoggerAwareInte
         ControllerManager $controllerManager,
         TemplateMapResolver $templateMapResolver,
         Translator $translator,
+        array $config
     ) {
+        $this->config = $config;
         $this->controllerManager   = $controllerManager;
         $this->templateMapResolver = $templateMapResolver;
         $this->translator          = $translator;
@@ -98,7 +102,7 @@ class AdminListener extends AbstractListenerAggregate implements LoggerAwareInte
          // Get and check the parameter for current controller
         $this->controller = $routeMatch->getParam('controller');
         $this->controller = $this->controllerManager->get($this->controller);
-        $name             = 'layout/admin';
+        $name             = $this->config['admin_template'];
         // if this is not an admin controller or if we have already got the layout return
         if (! $this->controller instanceof AdminControllerInterface || $this->templateMapResolver->has($name)) {
              return;

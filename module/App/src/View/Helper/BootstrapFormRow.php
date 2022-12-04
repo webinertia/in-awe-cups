@@ -201,6 +201,6 @@ class BootstrapFormRow extends FormRow
 
     public function getInputErrorClass(): string
     {
-        return 'has-error text-danger';
+        return 'has-error text-danger error';
     }
 }

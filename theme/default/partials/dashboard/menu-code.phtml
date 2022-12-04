@@ -1,0 +1,58 @@
+
+        <?php
+        foreach ($container as $page) :
+            if ($page->getParent()->hasPage($page) && (count($page->pages) === 0)) :
+                // top level pages with no children
+                ?>
+                <?=$page->getHref()?>
+                <?php
+                if (isset($page->iconClass)) :
+                    ?>
+                        <?=$page->iconClass?>
+                    <?php
+                endif;
+                ?>
+                <?= $page->label ?>
+        <?php
+        // top level pages with children
+            elseif ($page->getParent()->hasPage($page) && (count($page->pages) >= 1)) :
+        ?>
+            <?=$page->menuId?><?=$page->menuId?>
+                <?php
+                if (isset($page->iconClass)) :
+                ?>
+                    <?=$page->iconClass?>
+                <?php
+                endif;
+                ?>
+                <?= $page->label?>
+
+
+                    <?php
+                    $childCount = count($page->pages);
+                    foreach ($page->pages as $child) :
+                    ?>
+                        <?=$child->getHref()?>
+                            <?=$child->label?>
+                        <?php
+                        // If there is any pages below this level we are going to render them here
+                        // But do it after the pages at this level so to maintain priority
+                        if (count($child->pages)) :
+                            foreach ($child->pages as $grandChild) :
+                                ?>
+                                    <?=$grandChild->getHref()?>
+                                    <?=$grandChild->label?>
+
+                                <?php
+                                continue;
+                            endforeach;
+                        endif;
+                        ?>
+                        <?php
+                        continue;
+                    endforeach;
+                    ?>
+                <?php
+            endif;
+        endforeach;
+        ?>

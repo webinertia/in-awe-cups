@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ContentManager;
 
-use App\Controller\Factory\AppControllerFactory;
+use App\Controller\Factory\AbstractControllerFactory;
 use ContentManager\Navigation\Service\DefaultNavigationFactory;
 use Laminas\I18n\Translator\Loader\PhpArray;
 use Laminas\Navigation\Navigation;
@@ -95,8 +95,8 @@ return [
     ],
     'controllers'       => [
         'factories' => [
-            Controller\AdminController::class   => AppControllerFactory::class,
-            Controller\ContentController::class => AppControllerFactory::class,
+            Controller\AdminController::class   => AbstractControllerFactory::class,
+            Controller\ContentController::class => AbstractControllerFactory::class,
         ],
     ],
     'form_elements'     => [
@@ -143,22 +143,28 @@ return [
     'navigation'        => [
         'admin' => [
             [
-                'label'     => 'Page Manager',
+                'dojoType'  => 'TabContainer',
+                'widgetId'  => 'contentManager',
+                'label'     => 'Content Manager',
                 'uri'       => '/admin/content',
                 'iconClass' => 'mdi mdi-page-layout-body text-warning',
                 'resource'  => 'admin',
                 'privilege' => 'admin.access',
                 'pages'     => [
                     [
+                        'dojoType'  => 'ContentPane',
+                        'widgetId'  => 'contentOverview',
                         'label'     => 'Content Dashboard',
-                        'route'     => 'admin.content/manager',
+                        'uri'     => 'admin/content/manager',
                         'action'    => 'dashboard',
                         'resource'  => 'admin',
                         'privilege' => 'admin.access',
                     ],
                     [
+                        'dojoType'  => 'ContentPane',
+                        'widgetId'  => 'pageCreator',
                         'label'     => 'Create New Page',
-                        'route'     => 'admin.content/manager/create',
+                        'uri'       => 'admin/content/manager/create',
                         'action'    => 'create',
                         'resource'  => 'admin',
                         'privilege' => 'admin.access',

@@ -1,0 +1,65 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<?php
+if (isset($this->form)) {
+    //$this->form->addSubmit();
+    $this->form->prepare();
+    echo $this->dijitForm($this->form);
+}
+?>
+<!-- <form id="categoryForm" data-dojo-type="dojox/form/Manager" enctype="multipart/form-data" action="/admin/store/manage/categories/create">
+    <textarea id="description" name="description" data-dojo-type="dijit/Editor"
+        data-dojo-props="extraPlugins:
+        [
+            'foreColor',
+            'hiliteColor',
+            {name:'dijit/_editor/plugins/FontChoice', command:'fontName', generic:true},
+            {name: 'dojox/editor/plugins/Save', url:'/admin/store/manage/categories/create', iconClassPrefix:'dijitIcon', command:'Save'}
+        ]"></textarea>
+</form> -->
+<script>
+require(
+    [
+        "aurora/Aurora",
+        "dijit/Editor",
+        "dojo/dom",
+        "dojo/request",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/form/FilteringSelect",
+        "dijit/form/ComboBox",
+        "dojox/layout/ContentPane",
+        "dijit/form/Form",
+        "dijit/form/Button",
+        "dijit/form/Select",
+        "dijit/_editor/RichText",
+        "dijit/_editor/plugins/FontChoice",
+        "dijit/_editor/plugins/TextColor",
+        "aurora/editor/plugins/Save",
+        "dojo/domReady!",
+        "dijit/_WidgetBase",
+    "dijit/form/_ButtonMixin",
+    "dijit/form/_FormWidgetMixin"
+    ], function(Aurora, Editor, dom, request, on, Manager, registry, FilteringSelect, ComboBox, ContentPane, dijitForm, Button){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    const aurora = new Aurora();
+    aurora.set("serviceManager", registry);
+    dojo.connect(registry.byId("storeWorkspace"), "onLoad", function() {
+        // const storeWorkspace = registry.byId("storeWorkspace");
+        //alert("connected to storeWorkspace in create category action");
+
+    });// end dojo.connect
+});
+</script>

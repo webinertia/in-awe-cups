@@ -1,6 +1,8 @@
 <?php
 /**
- * This file is for general testing to prevent random changes in other controllers
+ * This file is for application settings that can be modified.
+ * db_time_format ISO8601/RFC3339 \DateTimeInterface::RFC3339 dojo compatible, provides correct sorting of data strings
+ * display_time_format 'm-j-Y g:i:s' display in normal US output
  * phpcs:ignoreFile
  */
 return [
@@ -10,6 +12,8 @@ return [
             'upload_basepath' => 'C:/htdocs/aurora/public/module',
             'request_scheme' => 'http',
             'host' => 'aurora',
+            'db_time_format' => \DateTimeInterface::RFC3339,
+            'display_time_format' => 'm-j-Y g:i:s', // normal US display format
             'time_format' => 'm-j-Y g:i:s',
             'time_zone' => 'America/Chicago',
             'log_errors' => '1',
@@ -21,12 +25,12 @@ return [
         ],
         'seo' => [
             'key_words' => 'Aurora CMS, Webinertia.net, Laminas, Php, MySQL',
-            'description' => 'Aurora CMS',
+            'description' => 'In Awe Cups &amp; More',
         ],
         'view' => [
-            'site_name' => 'Aurora CMS',
-            'copyright_link' => 'http://webinertia.net/aurora',
-            'copyright_text' => 'Aurora CMS',
+            'site_name' => 'In Awe Cups &amp; More',
+            'copyright_link' => 'https://inawecups.com',
+            'copyright_text' => 'In Awe Cups &amp; More',
             'footer_text' => 'Developed by Webinertia',
             'show_breadcrumbs' => '0',
         ],

@@ -13,8 +13,12 @@ use App\Model\Theme;
 use Laminas\Config\Exception\RuntimeException as ConfigRuntimeException;
 use Laminas\Config\Factory as ConfigFactory;
 use Laminas\Config\Writer\PhpArray as ConfigWriter;
+use Laminas\Json\Json;
 use Laminas\Form\FormElementManager;
+use Laminas\Http\Header\SetCookie;;
+use Laminas\View\Model\JsonModel;
 use Laminas\View\Model\ViewModel;
+use Laminas\View\Model\ModelInterface;
 use RuntimeException;
 use User\Controller\WidgetController;
 
@@ -22,60 +26,66 @@ final class AdminController extends AbstractAppController implements AdminContro
 {
     /** @var string $resourceId */
     protected $resourceId = 'admin';
+    /** @var Theme $theme */
+    protected $theme;
 
-    public function indexAction(): ViewModel
+    public function __construct(FormElementManager $formElementManager, Theme $theme, array $config)
     {
-        if ($this->request->isXmlHttpRequest()) {
-            $this->view->setTerminal(true);
-        }
-        $memberListWidget = $this->forward()->dispatch(
-            WidgetController::class,
-            [
-                'action' => 'member-list',
-                'group'  => 'admin',
-            ]
-        );
-        $this->view->setVariables(['memberListWidget' => $memberListWidget, 'listType' => 'admin']);
+        parent::__construct($config);
+        $this->formElementManager = $formElementManager;
+        $this->theme = $theme;
+    }
+
+    public function indexAction(): ModelInterface
+    {
+        $this->view->setVariable('cmd', $this->request->getQuery('cmd', 'bypass'));
         return $this->view;
     }
 
     public function manageThemesAction(): ViewModel
     {
-        if ($this->request->isXmlHttpRequest()) {
-            $this->view->setTerminal(true);
-        }
-        $themes  = $this->getService(Theme::class);
+        $this->ajaxAction();
+        $this->view->setVariable('message', 0);
         $headers = $this->response->getHeaders();
-        if (! $this->isAllowed($themes)) {
-            $headers->addHeaderLine('Content-Type', 'application/json');
-            $this->response->setStatusCode(403);
-            $this->view->setVariables(['error' => true, 'message' => ['message' => 'Access denied']]);
+        if (! $this->isAllowed($this->theme)) {
+            $this->view->setVariables(['error' => true, 'message' => 'Access denied']);
         }
-        $form = $this->getService(FormElementManager::class)->get(ThemeSettingsForm::class);
+        /** @var ThemeSettingsForm $form */
+        $form = $this->formElementManager->get(ThemeSettingsForm::class);
         $form->setAttribute('action', $this->url()->fromRoute('admin/themes/manage'));
         if (! $this->request->isPost()) {
-            $form->setData($themes->getConfig());
+            $form->setData($this->theme->getConfig());
         }
         if ($this->request->isPost()) {
             $form->setData($this->request->getPost());
             if ($form->isValid()) {
                 $data = $form->getData();
                 try {
-                    $writer = $this->getService(ConfigWriter::class)->get();
+                    $writer = new ConfigWriter();
                     $writer->setUseBracketArraySyntax(true);
-                    $writer->toFile($this->getService(Theme::class)->get()->getConfigPath(), $data);
-                    $headers->addHeaderLine('Content-Type', 'application/json');
-                    $this->view->setVariables(['success' => true, 'message' => ['message' => 'Settings Saved']]);
+                   // $writer->toFile($this->theme->getConfigPath(), $data);
+                    $this->view->setVariable('message', 'Theme Settings saved!!');
                 } catch (RuntimeException $e) {
                     $this->getEventManager()->trigger(LogEvent::ERROR, $e->getMessage());
                 }
+            } else {
+                $errors = $form->getMessages();
+                //$this->response->setStatusCode(406);
+                //$this->response->setReasonPhrase("Invalid Form Data");
+                // return new JsonModel(
+                //     [
+                //         'messageType' => 'formError',
+                //         'formErrors'  => $form->getMessages(),
+                //         'message'     => 'Invalid data received.',
+                //     ]
+                // );
             }
         }
         $this->view->setVariable('form', $form);
         return $this->view;
     }
 
-    public function manageSettingsAction(): ViewModel
+    public function manageSettingsAction(): ModelInterface
     {
         $this->resourceId = 'settings';
         $headers          = $this->response->getHeaders();
@@ -87,7 +97,7 @@ final class AdminController extends AbstractAppController implements AdminContro
             $this->response->setStatusCode(403);
             $this->view->setVariables(['error' => true, 'message' => ['message' => 'Access denied']]);
         }
-        $form = $this->getService(FormElementManager::class)->get(SettingsForm::class);
+        $form = $this->formElementManager->get(SettingsForm::class);
         $form->setAttribute(
             'action',
             $this->url()->fromRoute('admin/settings/manage')
@@ -103,6 +113,7 @@ final class AdminController extends AbstractAppController implements AdminContro
                         $this->basePath . '/config/autoload/appsettings.local.php',
                         $form->getData(),
                     );
+                    return new JsonModel(['message' => 'Settings saved!!']);
                 } catch (ConfigRuntimeException $e) {
                     $this->getEventManager()->trigger(
                         LogEvent::CRITICAL,
@@ -110,6 +121,7 @@ final class AdminController extends AbstractAppController implements AdminContro
                         . 'Exception Info: '
                         . $e->getFile() . ' Line#:' . $e->getLine() . ': ' . $e->getMessage()
                     );
+                    return new JsonModel(['errors' => $form->getMessages()]);
                 }
                 $headers->addHeaderLine('Content-Type', 'application/json');
                 $this->getEventManager()->trigger(
@@ -119,11 +131,13 @@ final class AdminController extends AbstractAppController implements AdminContro
                 $this->view->setVariables(
                     [
                         'success' => true,
-                        'message' => [
-                            'message' => $this->getTranslator()->translate('edit_settings_success'),
-                        ],
+                        'message' => $this->getTranslator()->translate('edit_settings_success'),
+                        'form' => $form
                     ]
                 );
+                return $this->view;
+            } else {
+                return $this->view;
             }
         } else {
             try {

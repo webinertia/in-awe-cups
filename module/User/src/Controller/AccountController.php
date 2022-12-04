@@ -52,7 +52,7 @@ final class AccountController extends AbstractAppController implements FormManag
                 . ' '
                 . sprintf($this->getTranslator()->translate('welcome_back'), $userService->getFullName())
             );
-            return $this->redirect()->toRoute('user/profile', ['userName' => $userService->userName]);
+            return $this->redirect()->toRoute('home', ['userName' => $userService->userName]);
         }
         $this->view->setVariable('form', $form);
         return $this->view;

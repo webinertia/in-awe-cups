@@ -1,0 +1,35 @@
+<div id="header-carousel" class="carousel slide" data-ride="carousel">
+    <div class="carousel-inner">
+        <?php
+        if (isset($this->sliderData)) {
+            $slideCount = $this->sliderData->getSlideCount();
+            $path       = $this->config('module_settings')['widget']['imageslider']['paths']['web'];
+            for ($i = 0; $i < $slideCount; $i++)  {
+        ?>
+                <div class="<?php echo $i === 0 ? 'carousel-item active' : 'carousel-item'?>" style="height: 410px;">
+                    <img class="img-fluid"
+                     src="<?=$path . $this->sliderData->data[$i]['file']?>"
+                     alt="Image">
+                    <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                        <div class="p-3" style="max-width: 700px;">
+                            <h4 class="text-light text-uppercase font-weight-medium mb-3"><?=$this->sliderData->data[$i]['slide_blurb']?></h4>
+                            <h3 class="display-4 text-white font-weight-semi-bold mb-4"><?=$this->sliderData->data[$i]['slide_title']?></h3>
+                            <a href="<?=$this->sliderData->data[$i]['slide_link']?>" class="btn btn-light py-2 px-3">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+        <?php
+            }
+        }
+        ?>
+    <a class="carousel-control-prev" href="#header-carousel" data-slide="prev">
+        <div class="btn btn-dark" style="width: 45px; height: 45px;">
+            <span class="carousel-control-prev-icon mb-n2"></span>
+        </div>
+    </a>
+    <a class="carousel-control-next" href="#header-carousel" data-slide="next">
+        <div class="btn btn-dark" style="width: 45px; height: 45px;">
+            <span class="carousel-control-next-icon mb-n2"></span>
+        </div>
+    </a>
+</div>

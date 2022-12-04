@@ -2,15 +2,48 @@
 
 declare(strict_types=1);
 
-if (isset($this->success) && $this->success && isset($this->message)) {
-    echo $this->json($this->message);
-} elseif (isset($this->error) && $this->error && isset($this->message)) {
-    echo $this->json($this->message);
+if (isset($this->form)) {
+    $this->form->addSubmit();
+    echo $this->bootstrapForm($this->form);
 }
-else {
-    if (isset($this->form)) {
-        $this->form->addSubmit();
-        $this->formCollection()->setElementHelper($this->bootstrapFormRow());
-        echo $this->bootstrapForm($this->form);
-    }
-}
+?>
+<script>
+require(
+    [
+        "aurora/Aurora",
+        "dojo/cookie",
+        "dojo/dom",
+        "dojo/request",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/Dialog",
+        "dojo/domReady!"
+    ], function(Aurora, cookie, dom, request, on, Manager, registry, Dialog){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    const aurora = new Aurora();
+    aurora.set("serviceManager", registry);
+    dojo.connect(registry.byId("themeManager"), "onLoad", function() {
+        const themeManager = registry.byId("themeManager");
+        var formManager = registry.byId("themeSettingsForm");
+        aurora.set("formManager", formManager);
+        window.formManager = formManager;
+        //console.log(aurora);
+        formManager.on("submit", function(event) {
+            aurora.ajaxify(event);
+            var postData = new FormData(dom.byId(event.target.id));
+            // handle the form submission
+            request.post(event.target.action, {
+                data: postData,
+            }).then(function(response) {
+                var saveButton = registry.byId(aurora.getSaveButtonId("<?=$this->form->getName()?>"));
+                    saveButton.cancel();
+                    themeManager.set("content", response);
+            },
+            function(error){
+                console.log("logging error from manage-themes view" + error);
+            });
+        });
+    });
+});
+</script>

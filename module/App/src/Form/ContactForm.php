@@ -15,10 +15,10 @@ use Laminas\Form\Element\Text;
 use Laminas\Form\Element\Textarea;
 use Laminas\Form\Exception\InvalidArgumentException;
 use Laminas\Form\Form;
-use Laminas\InputFilter\InputFilterProviderInterface;
+use Laminas\InputFilter\InputFilterAwareInterface;
 use Laminas\Validator\StringLength;
 
-class ContactForm extends Form implements InputFilterProviderInterface
+class ContactForm extends Form implements InputFilterAwareInterface
 {
     /** @var array<mixed> $appSettings */
     protected $appSettings;

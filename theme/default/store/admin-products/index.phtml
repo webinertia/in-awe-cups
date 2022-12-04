@@ -1,0 +1,39 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<div id="product-manager" class="row">
+    <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-9">
+                        <div class="d-flex align-items-center align-self-start">
+                            <h5 class="mb-0">Create Product</h5>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="icon icon-box-success">
+                            <a class="product-manager-control mdi mdi-arrow-top-right icon-item" href="<?=$this->url('admin.store/manage/products', ['action' => 'create'])?>"></a>
+                        </div>
+                    </div>
+                </div>
+                <h6 class="text-muted font-weight-normal">Potential growth</h6>
+            </div>
+        </div>
+    </div>
+</div><!-- end product-manager row -->
+<div id="product-search" class="container">
+    <form class="form-inline">
+        <input id="product-search" name="product-search" class="form-control mr-sm-2" type="search" placeholder="<?=$this->translate('product_search_placeholder', 'default')?>" aria-label="Search">
+    </form>
+</div>

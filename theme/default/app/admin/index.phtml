@@ -7,5 +7,13 @@ use Laminas\View\Renderer\PhpRenderer;
 /**
  * @var PhpRenderer $this
  */
-echo $this->render($this->memberListWidget);
-echo $this->partial('partials/dashboard/message-portfolio-todo.phtml');
+//echo $this->render($this->memberListWidget);
+?>
+<div id="cmd" style="display:hidden;">
+<?php
+if (isset($this->cmd)) :
+    //echo $this->json($this->cmd);
+endif;
+?>
+</div>
+<?php //echo $this->partial('partials/dashboard/message-portfolio-todo.phtml');

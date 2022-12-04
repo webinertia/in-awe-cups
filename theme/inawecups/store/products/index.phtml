@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * phpcs:ignoreFile
+ */
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<?=$this->pageHeader()?>
+<?php
+echo 'running';

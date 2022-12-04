@@ -124,6 +124,7 @@ $(document).bind("ajaxComplete", function() {
         toolbar: 'undo redo | image | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | help'
     });
 });
+
 $('div#work-space').on("submit", function(event) {
     event.preventDefault();
     let f = $(event.target);
@@ -137,7 +138,7 @@ $('div#work-space').on("submit", function(event) {
         data: postData,
     });
     request.done(function(response, textStatus, jqXHR) {
-        if (jqXHR.getResponseHeader("Content-Type") == "text/html; charset=UTF-8") {
+        if (jqXHR.getResponseHeader("Content-Type") == "text/html; charset=utf-8") {
             $('div#work-space').html(response);
         }
         else if(jqXHR.getResponseHeader("Content-Type") == "application/json") {

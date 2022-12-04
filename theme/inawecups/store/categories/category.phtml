@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * phpcs:ignoreFile
+ */
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<?php
+if ($this->showHeader) {
+    echo $this->pageHeader($this->headerTitle ?? '');
+}
+?>

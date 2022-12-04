@@ -3,15 +3,54 @@
 declare(strict_types=1);
 
 use Laminas\View\Renderer\PhpRenderer;
-
-/**
- * @var PhpRenderer $this
- */
-if (isset($form)) :
-    echo $this->bootstrapForm($form);
-    ?>
-
-    <?php
-endif;
-echo 'loading...';
 ?>
+<?php
+if (isset($this->form)) {
+    echo $this->dijitForm($this->form);
+}
+?>
+<script>
+require(
+    [
+        "aurora/Aurora",
+        "dijit/Editor",
+        "dojo/dom",
+        "dojo/request",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/form/FilteringSelect",
+        "dijit/form/ComboBox",
+        "dojox/layout/ContentPane",
+        "dijit/form/Form",
+        "dijit/form/Button",
+        "dijit/_editor/plugins/FontChoice",
+        "dijit/_editor/plugins/TextColor",
+        "aurora/editor/plugins/Save",
+        'dojox/form/Uploader',
+        "dojox/form/uploader/FileList",
+        "dojox/form/uploader/plugins/HTML5",
+        "dojo/domReady!"
+    ], function(Aurora, Editor, dom, request, on, Manager, registry, FilteringSelect, ComboBox, ContentPane, dijitForm, Button){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    const aurora = new Aurora();
+    aurora.set("serviceManager", registry);
+    // dojo.connect(registry.byId("storeDataManager"), "onLoad", function() {
+    //     const storeWorkspace = registry.byId("storeWorkspace");
+    //     // stack container content pane we are connected too
+    //     const categoryManager = registry.byId("storeDataManager");
+    //     // category search form
+    //     let catFormManager = registry.byId("category-search");
+    //     catFormManager.disable();
+    //     // handle the button controls
+    //     let createCategoryButton = registry.byId("create-category-button");
+    //     if (createCategoryButton) {
+    //         createCategoryButton.on("click", function(event) {
+    //             request.get("/admin/store/manage/categories/create").then(function(response) {
+    //                 storeWorkspace.set("content", response);
+    //             });
+    //         });
+    //     }
+    // });// end dojo.connect
+});
+</script>

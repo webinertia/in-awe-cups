@@ -69,11 +69,14 @@ else :
 <?php
 endif;
 ?>
+    <?php
+    if (isset($this->page)) :
+    ?>
     <div class="modal fade" id="editorModal" tabindex="-1" role="dialog" aria-labelledby="editorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editorModalLabel">Edit Page <?=$page->lagel?></h5>
+                <h5 class="modal-title" id="editorModalLabel">Edit Page <?=$page->label?></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
@@ -83,3 +86,8 @@ endif;
             </div>
         </div>
     </div>
+    <?php
+    elseif (isset($this->store)) :
+        echo $this->render($this->store);
+    endif;
+    ?>

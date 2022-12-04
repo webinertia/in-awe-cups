@@ -10,6 +10,8 @@ use Laminas\Form\Element\Hidden;
 use Laminas\Form\Element\Text;
 use Laminas\Form\Fieldset;
 use Laminas\InputFilter\InputFilterProviderInterface;
+use Laminas\Filter\StringTrim;
+use Laminas\Validator\StringLength;
 
 final class ThemeFieldset extends Fieldset implements InputFilterProviderInterface
 {
@@ -52,6 +54,21 @@ final class ThemeFieldset extends Fieldset implements InputFilterProviderInterfa
 
     public function getInputFilterSpecification(): array
     {
-        return [];
+        return [
+            // 'name' => [
+            //     'filters' => [
+            //         ['name' => StringTrim::class]
+            //     ],
+            //     'validators' => [
+            //         [
+            //             'name' => StringLength::class,
+            //             'options' => [
+            //                 'min' => 1,
+            //                 'max' => 5,
+            //             ],
+            //         ],
+            //     ],
+            // ],
+        ];
     }
 }

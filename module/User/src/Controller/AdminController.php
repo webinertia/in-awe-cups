@@ -15,6 +15,7 @@ final class AdminController extends AbstractAppController implements AdminContro
     protected $resourceId = 'admin';
     public function indexAction(): ViewModel
     {
+        $this->ajaxAction();
         return $this->view;
     }
 

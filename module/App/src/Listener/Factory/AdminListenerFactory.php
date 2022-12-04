@@ -20,7 +20,8 @@ class AdminListenerFactory implements FactoryInterface
             $container->get(ControllerManager::class),
             //$container->get(LoggerInterface::class),
             $container->get(TemplateMapResolver::class),
-            $container->get(Translator::class)
+            $container->get(Translator::class),
+            $container->get('config')['app_settings']['theme']
         );
     }
 }

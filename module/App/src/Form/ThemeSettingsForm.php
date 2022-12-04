@@ -15,7 +15,7 @@ final class ThemeSettingsForm extends BaseForm
 
     public function __construct(Theme $theme, array $options = [])
     {
-        parent::__construct('theme-settings', $options);
+        parent::__construct('themeSettingsForm', $options);
         $this->themes = $theme;
     }
 

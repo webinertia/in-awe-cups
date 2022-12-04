@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\ControllerInterface;
+use App\Controller\Trait\AjaxActionTrait;
 use App\Service\AppSettingsAwareTrait;
 use App\Session\SessionContainerAwareTrait;
+use Laminas\Form\FormElementManager;
+use Laminas\Http\PhpEnvironment\Response;
+use Laminas\Http\PhpEnvironment\Request;
 use Laminas\I18n\Translator\TranslatorAwareTrait;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\Permissions\Acl\Resource\ResourceInterface;
@@ -36,6 +40,7 @@ abstract class AbstractAppController extends AbstractActionController implements
     use AclAwareTrait, CheckActionAccessTrait {
         CheckActionAccessTrait::isAllowed insteadof AclAwareTrait;
     }
+    use AjaxActionTrait;
     use AppSettingsAwareTrait;
     use CheckActionAccessTrait;
     use ResourceAwareTrait;
@@ -43,6 +48,10 @@ abstract class AbstractAppController extends AbstractActionController implements
     use TranslatorAwareTrait;
     use UserServiceAwareTrait;
 
+    /** @var Request $request */
+    protected $request;
+    /** @var Response $response */
+    protected $response;
     /** @var string $appPath */
     public $appPath;
     /** @var string $baseUrl */
@@ -57,14 +66,14 @@ abstract class AbstractAppController extends AbstractActionController implements
     protected $view;
     /** @var array<string, mixed> $config */
     protected $config;
+    /** @var FormElementManager $formElementManager */
+    protected $formElementManager;
 
     /**
      * @return void
      * @param array<string, mixed> $config
      * */
-    public function __construct(
-        ?array $config = null
-    ) {
+    public function __construct(array $config) {
         $this->config   = $config;
         $this->view     = new ViewModel();
         $this->appPath  = $this->config['app_settings']['server']['app_path'];

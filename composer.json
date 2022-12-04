@@ -29,13 +29,17 @@
         "laminas/laminas-captcha": "^2.11",
         "laminas/laminas-paginator": "^2.12",
         "laminas/laminas-paginator-adapter-laminasdb": "^1.2",
-        "laminas/laminas-authentication": "2.11.0"
+        "laminas/laminas-authentication": "2.11.0",
+        "webinertia/dojo": "0.0.1"
     },
     "autoload": {
         "psr-4": {
             "App\\": "module/App/src/",
             "ContentManager\\": "module/ContentManager/src/",
-            "User\\": "module/User/src/"
+            "User\\": "module/User/src/",
+            "Store\\": "module/Store/src/",
+            "Widget\\": "module/Widget/src/",
+            "InAweCups\\": "module/InAweCups/src/"
         }
     },
     "autoload-dev": {

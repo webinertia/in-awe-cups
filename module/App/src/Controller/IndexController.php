@@ -31,11 +31,38 @@ final class IndexController extends AbstractAppController implements FormManager
 
     public function indexAction(): mixed
     {
-        $this->page = $this->getService(Page::class);
-        $homePage   = $this->page->getLandingPage();
-        $this->view->setVariables([
-            'page' => $homePage,
-        ]);
+        if (! $this->appSettings['load_store_as_homepage']) {
+            $this->page = $this->getService(Page::class);
+            $homePage   = $this->page->getLandingPage();
+            $this->view->setVariables([
+                'page' => $homePage,
+            ]);
+        } else {
+            $this->view->setVariable('store', $this->forward()->dispatch('CategoriesController', ['action' => 'category', 'name' => 'all', 'showHeader' => false]));
+        }
+        if ($this->config['module_settings']['widget']['imageslider']['enable_imageslider']) {
+            // $this->view->setVariable(
+            //     'slider',
+            //     $this->forward()->dispatch(
+            //         'widget/imageslider',
+            //         ['action' => 'index', 'slideCount' => '2']
+            //     )
+            // );
+            $this->layout()->setVariables([
+                'isHomePage' => true,
+                'slider'     => $this->forward()->dispatch(
+                    'ImageSliderController',
+                    ['action' => 'index', 'slideCount' => '2']
+                ),
+            ]);
+            // $this->layout()->setVariable(
+            //     'slider',
+            //     $this->forward()->dispatch(
+            //         'ImageSliderController',
+            //         ['action' => 'index', 'slideCount' => '2']
+            //     )
+            // );
+        }
         return $this->view;
     }
 

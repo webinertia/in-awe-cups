@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace User;
 
-use App\Controller\Factory\AppControllerFactory;
+use App\Controller\Factory\AbstractControllerFactory;
 use Laminas\Authentication\AuthenticationService;
 use Laminas\I18n\Translator\Loader\PhpArray;
 use Laminas\Permissions\Acl\AclInterface;
@@ -279,8 +279,8 @@ return [
                 'class'     => 'nav-link',
                 'order'     => -901,
                 'action'    => 'list',
-                'resource'  => 'member-list',
-                'privilege' => 'view',
+                'resource'  => 'admin',
+                'privilege' => 'admin.access',
             ],
             [
                 'label'     => 'Profile',
@@ -321,16 +321,20 @@ return [
         ],
         'admin'   => [
             [
+                'dojoType'  => 'ContentPane',
+                'widgetId'  => 'userManager',
                 'label'     => 'Manage Users',
-                'route'     => 'admin.user',
+                'uri'       => '/admin/user/index',
                 'iconClass' => 'mdi mdi-account-multiple text-primary',
                 'action'    => 'index',
                 'resource'  => 'admin',
                 'privilege' => 'admin.access',
             ],
             [
+                'dojoType'  => 'Button',
+                'widgetId'  => 'logoutButton',
                 'label'     => 'Logout',
-                'route'     => 'user',
+                'uri'       => '/user/account/logout',
                 'iconClass' => 'mdi mdi-logout text-success',
                 'action'    => 'logout',
                 'resource'  => 'user',
@@ -349,14 +353,14 @@ return [
     ],
     'controllers'        => [
         'factories' => [
-            Controller\AccountController::class       => AppControllerFactory::class,
-            Controller\AdminController::class         => AppControllerFactory::class,
-            Controller\ManageProfileController::class => AppControllerFactory::class,
-            Controller\PasswordController::class      => AppControllerFactory::class,
-            Controller\ProfileController::class       => AppControllerFactory::class,
-            Controller\RegisterController::class      => AppControllerFactory::class,
-            Controller\UserController::class          => AppControllerFactory::class,
-            Controller\WidgetController::class        => AppControllerFactory::class,
+            Controller\AccountController::class       => AbstractControllerFactory::class,
+            Controller\AdminController::class         => AbstractControllerFactory::class,
+            Controller\ManageProfileController::class => AbstractControllerFactory::class,
+            Controller\PasswordController::class      => AbstractControllerFactory::class,
+            Controller\ProfileController::class       => AbstractControllerFactory::class,
+            Controller\RegisterController::class      => AbstractControllerFactory::class,
+            Controller\UserController::class          => AbstractControllerFactory::class,
+            Controller\WidgetController::class        => AbstractControllerFactory::class,
         ],
     ],
     'controller_plugins' => [

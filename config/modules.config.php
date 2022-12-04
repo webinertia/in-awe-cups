@@ -30,7 +30,11 @@ return [
     'Laminas\Router',
     'Laminas\Validator',
     'Laminas\Diactoros',
+    'Dojo',
     'App',
     'ContentManager',
     'User',
+    'Widget',
+    'Store',
+    'InAweCups',
 ];

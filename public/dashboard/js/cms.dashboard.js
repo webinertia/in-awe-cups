@@ -105,22 +105,26 @@ $(document).bind("ajaxComplete", function() {
  */
 $('div#workSpace').on("submit", function(event) {
     event.preventDefault();
+    let formData = new FormData(event.target);
     let f = $(event.target);
     let location = $(f).attr("action");
-    let postData = $(f).serialize();
     let formMethod = $(f).attr("method");
     let request = $.ajax({
         // handle all of the form submissions based on form action and the data
         url: location,
         method: formMethod,
-        data: postData,
+        data: formData,
+        processData: false,
+        contentType: false,
     });
     request.done(function(response, textStatus, jqXHR) {
         if (jqXHR.getResponseHeader("Content-Type") == "text/html; charset=UTF-8") {
             $('div#workSpace').html(response);
         }
-        else if(jqXHR.getResponseHeader("Content-Type") == "application/json") {
-            alert(response.message);
+        else if(jqXHR.getResponseHeader("Content-Type") == "application/json; charset=utf-8") {
+                alert(response.message);
+            // $('div#admin-notification').append(response.message);
+            // $('#admin-notification-modal').modal('show');
         }
     });
     request.fail(function(){
@@ -171,3 +175,21 @@ $(document).on('click', 'div.log-message a.delete-log', function() {
     console.log($(this).parent());
     handleAjaxDelete(path);
 });
+// product manager
+$(document).on('click', 'a.product-manager-control', function($event){
+    $event.preventDefault();
+    let href = $(this).attr('href');
+    $.ajax({
+        url:href,
+        dataType: "html",
+        method: "GET",
+    }).done(function(response) {
+        /**
+         * this call to .html() updates the DOM by replacing the contents
+         * of div#workSpace with the response of the ajax
+         * request
+         * */
+        $('div#workSpace').html(response);
+    });
+});
+// end product manager

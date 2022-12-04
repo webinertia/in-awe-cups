@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "45ac89325a5d403f7e20f1561a82701c",
+    "content-hash": "b3d32fd242493434ec33a46a8536c31c",
     "packages": [
         {
             "name": "brick/varexporter",
@@ -5188,6 +5188,65 @@
                 }
             ],
             "time": "2021-04-19T16:34:45+00:00"
+        },
+        {
+            "name": "webinertia/dojo",
+            "version": "0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webinertia/dojo.git",
+                "reference": "a2c367250ca328330011cb9aad89a523633b24a2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webinertia/dojo/zipball/a2c367250ca328330011cb9aad89a523633b24a2",
+                "reference": "a2c367250ca328330011cb9aad89a523633b24a2",
+                "shasum": ""
+            },
+            "require": {
+                "laminas/laminas-component-installer": "^2.8.0",
+                "php": "^8.0 || ^8.1"
+            },
+            "suggest": {
+                "laminas/laminas-component-installer": "^2.8.0, required for configuration injection"
+            },
+            "type": "library",
+            "extra": {
+                "laminas": {
+                    "module": "Dojo",
+                    "config-provider": "Dojo\\ConfigProvider"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Dojo\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3"
+            ],
+            "authors": [
+                {
+                    "name": "Joey Smith",
+                    "email": "jsmith@webinertia.net",
+                    "homepage": "https://webinertia.net/"
+                }
+            ],
+            "description": "DojoToolKit 1.10 support for Laminas Form and Laminas View",
+            "homepage": "https://github.com/webinertia/dojo",
+            "keywords": [
+                "dojo toolkit",
+                "javascript",
+                "laminas",
+                "laminas form",
+                "laminas view"
+            ],
+            "support": {
+                "issues": "https://github.com/webinertia/dojo/issues",
+                "source": "https://github.com/webinertia/dojo/tree/0.0.2"
+            },
+            "time": "2022-11-16T01:19:40+00:00"
         },
         {
             "name": "webmozart/assert",

@@ -1,22 +1,17 @@
 <?php
-
-declare(strict_types=1);
-
-// @codingStandardsIgnoreStart
 return [
     'default' => [
         'id' => '1',
-        'active' => '1',
+        'active' => '0',
         'name' => 'default',
         'fallback' => 'default',
         'has_layout' => '1',
     ],
-    'sunrise' => [
+    'inawecups' => [
         'id' => '2',
-        'active' => '0',
-        'name' => 'sunrise',
+        'active' => '1',
+        'name' => 'inawecups',
         'fallback' => 'default',
         'has_layout' => '1',
     ],
 ];
-// @codingStandardsIgnoreEnd

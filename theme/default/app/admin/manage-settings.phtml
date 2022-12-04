@@ -2,14 +2,47 @@
 
 declare(strict_types=1);
 
-if (isset($this->success) && $this->success && isset($this->message)) {
-    echo $this->json($this->message);
-} elseif (isset($this->error) && $this->error && isset($this->message)) {
-    echo $this->json($this->message);
+if (isset($this->form)) {
+    $this->form->addSubmit();
+    echo $this->bootstrapForm($this->form);
 }
-else {
-    if (isset($this->form)) {
-        $this->form->addSubmit();
-        echo $this->bootstrapForm($this->form);
-    }
-}
+
+?>
+<script>
+    require(
+        [
+            "aurora/Aurora",
+            "dojo/dom",
+            "dojo/request",
+            "dojo/on",
+            "dojox/form/Manager",
+            "dijit/registry",
+            "dijit/Dialog",
+            "dojo/domReady!"
+        ], function(Aurora, dom, request, on, Manager, registry, Dialog){
+        const aurora = new Aurora();
+        // registry.byId should target the widgetId configured in the module.config admin navigation array
+        dojo.connect(registry.byId("settingManager"), "onLoad", function() {
+            const settingManager = registry.byId("settingManager");
+            var form = registry.byId("settingForm");
+            window.formManager = form;
+            form.on("submit", function(event) {
+                aurora.ajaxify(event);
+                var postData = new FormData(dom.byId(event.target.id));
+                // handle the form submission
+                request.post(event.target.action, {
+                    data: postData,
+                }).then(function(response) {
+                    var saveButton = registry.byId(aurora.getSaveButtonId("<?=$this->form->getName()?>"));
+                    saveButton.cancel();
+                    settingManager.set("content", response);
+                },
+                function(error){
+                    console.log(error);
+                    // implement
+                   // settingManager.set("content", )
+                });
+            });
+        });
+    });
+</script>

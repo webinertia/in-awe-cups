@@ -66,4 +66,20 @@ final class WidgetController extends AbstractAppController
         $this->view->setVariable('paginator', $this->paginator);
         return $this->view;
     }
+
+    public function adminWidgetAction()
+    {
+        if ($this->request->isXmlHttpRequest()) {
+            $this->view->setTerminal(true);
+        }
+        $memberListWidget = $this->forward()->dispatch(
+            WidgetController::class,
+            [
+                'action' => 'member-list',
+                'group'  => 'admin',
+            ]
+        );
+        $this->view->setVariables(['memberListWidget' => $memberListWidget, 'listType' => 'admin']);
+        return $this->view;
+    }
 }

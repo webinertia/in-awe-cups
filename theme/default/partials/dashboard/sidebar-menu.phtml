@@ -87,30 +87,30 @@ use User\Model\User;
                 <span class="menu-title"><?= $page->label ?></span>
             </a>
         </li>
-                <?php
+        <?php
         // top level pages with children
             elseif ($page->getParent()->hasPage($page) && (count($page->pages) >= 1)) :
-                ?>
+        ?>
         <li class="nav-item menu-items">
-            <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+            <a class="nav-link" data-toggle="collapse" href="#<?=$page->menuId?>" aria-expanded="false" aria-controls="<?=$page->menuId?>">
                 <?php
                 if (isset($page->iconClass)) :
-                    ?>
+                ?>
                 <span class="menu-icon">
                     <i class="<?=$page->iconClass?>"></i>
                 </span>
-                    <?php
+                <?php
                 endif;
                 ?>
                 <span class="menu-title"> <?= $page->label?> </span>
                 <i class="menu-arrow"></i>
             </a>
-            <div class="collapse" id="ui-basic">
+            <div class="collapse" id="<?=$page->menuId?>">
                 <ul class="nav flex-column sub-menu">
                     <?php
                     $childCount = count($page->pages);
                     foreach ($page->pages as $child) :
-                        ?>
+                    ?>
                         <li class="nav-item" data-href="<?=$child->getHref()?>">
                             <a class="nav-link" href="#"><?=$child->label?></a>
                         </li>

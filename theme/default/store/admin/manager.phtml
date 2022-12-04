@@ -1,0 +1,79 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+// need to change this to fire only on submit, add a button to search, will be easier I think
+?>
+
+<script>
+require(
+    [
+        "aurora/Aurora",
+        "dojo/cookie",
+        "dojo/dom",
+        "dojo/request",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/Dialog",
+        "dijit/form/FilteringSelect",
+        "dijit/form/ComboBox",
+        "dojox/layout/ContentPane",
+        "dijit/form/Form",
+        "dijit/form/Button",
+        "dojo/domReady!"
+    ], function(Aurora, cookie, dom, request, on, Manager, registry, Dialog, FilteringSelect, ComboBox, ContentPane, dijitForm, Button){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    const aurora = new Aurora();
+    aurora.set("serviceManager", registry);
+    dojo.connect(registry.byId("storeDataManager"), "onLoad", function() {
+        //alert("running");
+        // const storeWorkspace = registry.byId("storeWorkspace");
+        // // stack container content pane we are connected too
+        // const categoryManager = registry.byId("storeDataManager");
+        // // category search form
+        // let catFormManager = registry.byId("category-search");
+        // // category select comboBox that drives the category search function
+        // let search = registry.byId("categorySelect");
+        // //console.log(catFormManager);
+        // search.on("change", function(value) {
+        //     //aurora.ajaxify(event);
+        //     var postData = new FormData(dom.byId(catFormManager.params.id));
+        //     request.post(catFormManager.params.action, {
+        //         data: postData
+        //     }).then(function(response) {
+        //         // initialize the tree or data store and grid here
+        //         storeWorkspace.set("content", response);
+        //     });
+        // });
+        // handle the button controls
+        // let createCategoryButton = registry.byId("create-category-button");
+        // if (createCategoryButton) {
+        //     createCategoryButton.on("click", function(event) {
+        //         // disable the category search while we are creating a category because it will remove the form
+        //         catFormManager.disable();
+        //         request.get("/admin/store/manage/categories/create").then(function(response) {
+        //             storeWorkspace.set("content", response);
+        //         });
+        //     });
+        // }
+        // let createProductButton = registry.byId("create-product-button");
+        // if (createProductButton) {
+        //     createProductButton.on("click", function(event) {
+        //         catFormManager.disable();
+        //         request.get("/admin/store/manage/products/create").then(function(response) {
+        //             storeWorkspace.set("content", response);
+        //         });
+        //     });
+        // }
+    });// end dojo.connect
+});
+</script>

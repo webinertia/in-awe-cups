@@ -17,13 +17,18 @@ class SettingsForm extends BaseForm
      */
     public function __construct(array $options = [], array $settings = [])
     {
-        parent::__construct('settingsManager', $options);
+        parent::__construct('settingForm', $options);
         parent::setOptions($options);
         $this->settings = $settings;
     }
 
     public function init(): void
     {
+        $this->setAttributes(
+            [
+                'id' => 'settingForm'
+            ]
+        );
         $this->add([
             'type' => AppSettingsFieldset::class,
         ]);

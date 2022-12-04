@@ -13,10 +13,13 @@ use Laminas\Mvc\I18n\Router\TranslatorAwareTreeRouteStack;
 use Laminas\Router\Http\Literal;
 use Laminas\Router\Http\Placeholder;
 use Laminas\Router\Http\Segment;
+use Laminas\ServiceManager\AbstractFactory\ReflectionBasedAbstractFactory;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 use Laminas\Session\Config\ConfigInterface;
 use Laminas\Session\SaveHandler\SaveHandlerInterface;
 use Psr\Log\LoggerInterface;
+
+use function rand;
 
 return [
     'app_settings'       => [ // app_settings that are not to be edited are stored here
@@ -24,6 +27,16 @@ return [
             'app_path'        => __DIR__ . '/../../../',
             'upload_basepath' => __DIR__ . '/../../../public/module',
             'scheme'          => $_SERVER['REQUEST_SCHEME'] ?? 'http',
+            'content_security_policy' => [
+                'directives' => [
+                    'default-src' => ['\'self\'', 'unsafe-inline'],
+                    'img-src'     => ['*'],
+                    'script-src'  => ['\'self\'', 'unsafe-inline'],
+                ],
+            ],
+        ],
+        'theme' => [
+            'admin_template' => 'layout/dojo-admin',
         ],
     ],
     'base_dir'           => __DIR__ . '/../../../',
@@ -211,29 +224,33 @@ return [
     ],
     'listeners'          => [
         Listener\MySqlGlobalAdapterInit::class,
+        Listener\ContentSecurityListener::class,
         Listener\AdminListener::class,
         Listener\ThemeLoader::class,
+        Upload\UploadListener::class,
     ],
     'service_manager'    => [
         'factories' => [
-            Listener\MySqlGlobalAdapterInit::class => Listener\Factory\MySqlGlobalAdapterInitFactory::class,
-            ConfigInterface::class                 => Session\ConfigFactory::class,
-            Session\Container::class               => Session\ContainerFactory::class,
-            Db\DbGateway\LogGateway::class         => Db\DbGateway\Factory\LogGatewayFactory::class,
-            Listener\AdminListener::class          => Listener\Factory\AdminListenerFactory::class,
-            Listener\ThemeLoader::class            => Listener\Factory\ThemeLoaderFactory::class,
-            Model\Settings::class                  => Model\Factory\SettingsFactory::class,
-            Model\Theme::class                     => InvokableFactory::class,
-            Service\Email::class                   => Service\Factory\EmailFactory::class,
-            SaveHandlerInterface::class            => Session\SaveHandlerFactory::class,
+            Listener\MySqlGlobalAdapterInit::class  => Listener\Factory\MySqlGlobalAdapterInitFactory::class,
+            ConfigInterface::class                  => Session\ConfigFactory::class,
+            Session\Container::class                => Session\ContainerFactory::class,
+            Db\DbGateway\LogGateway::class          => Db\DbGateway\Factory\LogGatewayFactory::class,
+            Listener\AdminListener::class           => Listener\Factory\AdminListenerFactory::class,
+            Listener\ThemeLoader::class             => Listener\Factory\ThemeLoaderFactory::class,
+            Listener\ContentSecurityListener::class => ReflectionBasedAbstractFactory::class,
+            Model\Settings::class                   => Model\Factory\SettingsFactory::class,
+            Model\Theme::class                      => InvokableFactory::class,
+            Service\Email::class                    => Service\Factory\EmailFactory::class,
+            SaveHandlerInterface::class             => Session\SaveHandlerFactory::class,
+            Upload\UploadListener::class            => InvokableFactory::class,
         ],
     ],
     'controllers'        => [
         'factories' => [ // move this to an abstract factory???
-            Controller\AdminController::class => Controller\Factory\AppControllerFactory::class,
-            Controller\IndexController::class => Controller\Factory\AppControllerFactory::class,
-            Controller\TestController::class  => Controller\Factory\AppControllerFactory::class,
-            Controller\LogController::class   => Controller\Factory\AppControllerFactory::class,
+            Controller\AdminController::class => Controller\Factory\AbstractControllerFactory::class,
+            Controller\IndexController::class => Controller\Factory\AbstractControllerFactory::class,
+            Controller\TestController::class  => Controller\Factory\AbstractControllerFactory::class,
+            Controller\LogController::class   => Controller\Factory\AbstractControllerFactory::class,
         ],
     ],
     'controller_plugins' => [
@@ -257,9 +274,12 @@ return [
         ],
     ],
     'filters'            => [
-        'invokables' => [
+        'factories' => [
+            Filter\DbDateFormatter::class      => InvokableFactory::class,
             Filter\FqcnToControllerName::class => InvokableFactory::class,
             Filter\FqcnToModuleName::class     => InvokableFactory::class,
+            Filter\TitleToLabel::class         => InvokableFactory::class,
+            Filter\LabelToTitle::class         => InvokableFactory::class,
         ],
     ],
     'navigation'         => [
@@ -289,18 +309,22 @@ return [
         ],
         'admin'   => [
             [
+                'dojoType'  => 'Button',
+                'widgetId'  => 'homeButton',
                 'label'     => 'Home',
                 'uri'       => '/',
                 'iconClass' => 'mdi mdi-home text-success',
                 'order'     => -1000,
             ],
+            // [
+            //     'label'     => 'Dashboard',
+            //     'uri'       => '/admin',
+            //     'iconClass' => 'mdi mdi-speedometer text-success',
+            //     'order'     => -99,
+            // ],
             [
-                'label'     => 'Dashboard',
-                'uri'       => '/admin',
-                'iconClass' => 'mdi mdi-speedometer text-success',
-                'order'     => -99,
-            ],
-            [
+                'dojoType'  => 'ContentPane',
+                'widgetId'  => 'settingManager',
                 'label'     => 'Manage Settings',
                 'uri'       => '/admin/settings',
                 'iconClass' => 'mdi mdi-cogs text-danger',
@@ -308,6 +332,8 @@ return [
                 'privilege' => 'edit',
             ],
             [
+                'dojoType'  => 'ContentPane',
+                'widgetId'  => 'themeManager',
                 'label'     => 'Manage Themes',
                 'uri'       => '/admin/themes',
                 'iconClass' => 'mdi mdi-palette text-success',
@@ -315,6 +341,8 @@ return [
                 'privilege' => 'manage',
             ],
             [
+                'dojoType'  => 'ContentPane',
+                'widgetId'  => 'logManager',
                 'label'     => 'Logs',
                 'uri'       => '/admin/logs/view',
                 'iconClass' => 'mdi mdi-alarm text-warning',
@@ -331,6 +359,7 @@ return [
             'bootstrapFormRow'        => View\Helper\BootstrapFormRow::class,
             'config'                  => View\Helper\Config::class,
             'mapPriority'             => View\Helper\MapLogPriority::class,
+            'jsonifyMenu'             => View\Helper\JsonMenu::class,
         ],
         'factories' => [
             View\Helper\MapLogPriority::class          => InvokableFactory::class,
@@ -338,6 +367,7 @@ return [
             View\Helper\BootstrapFormCollection::class => InvokableFactory::class,
             View\Helper\BootstrapFormRow::class        => InvokableFactory::class,
             View\Helper\Config::class                  => View\Helper\Factory\ConfigFactory::class,
+            View\Helper\JsonMenu::class                => InvokableFactory::class,
         ],
     ],
     'view_manager'       => [
