@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Log\LogListener;
 use Laminas\I18n\ConfigProvider;
 use Laminas\ModuleManager\ModuleEvent;
 use Laminas\ModuleManager\ModuleManager;
@@ -13,7 +12,6 @@ use Laminas\Mvc\MvcEvent;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\View\Renderer\PhpRenderer;
 use Locale;
-use Psr\Log\LoggerInterface;
 
 use function date_default_timezone_set;
 
@@ -53,43 +51,31 @@ final class Module
 
     public function onBootstrap(MvcEvent $e): void
     {
-        $app          = $e->getApplication();
-        $eventManager = $app->getEventManager();
-        $this->sm     = $app->getServiceManager();
-        $this->config = $this->sm->get('config');
-        date_default_timezone_set($this->config['app_settings']['server']['time_zone']);
-        $psrLogAdapter = $this->sm->get(LoggerInterface::class);
-        $logListener   = new LogListener($psrLogAdapter);
-        $logListener->attach($eventManager);
-        // is error logging enabled?
-        if ($this->config['app_settings']['server']['log_errors'] && $this->sm->has(LoggerInterface::class)) {
-            $log = $this->sm->get(LoggerInterface::class)->getLogger();
-            $log::registerErrorHandler($log, true);
-        }
-        if ($this->config['app_settings']['server']['enable_translation']) {
-            $this->boostrapTranslation($e);
-        }
-    }
+        $app    = $e->getApplication();
+        $sm     = $app->getServiceManager();
+        $config = $sm->get('config');
+        date_default_timezone_set($config['app_settings']['server']['time_zone']);
 
-    public function boostrapTranslation(MvcEvent $e): void
-    {
-        // get an instance of the Request object
-        $request = $this->sm->get('Request');
-        // what locale has the client set in their browser?
-        $locale     = Locale::acceptFromHttp($request->getServer()->get('HTTP_ACCEPT_LANGUAGE', 'en_US'));
-        $translator = $this->sm->get(Translator::class);
-        // set the primary locale as requested by the client
-        if ($locale !== null) {
-            $translator->setLocale($locale);
-            // set the fallback
-            $translator->setFallbackLocale('en_US');
+        $translator = $sm->get(Translator::class);
+        if ($config['app_settings']['server']['enable_translation']) {
+            // get an instance of the Request object
+            $request = $sm->get('Request');
+            // what locale has the client set in their browser?
+            $locale = Locale::acceptFromHttp($request->getServer()->get('HTTP_ACCEPT_LANGUAGE', 'en_US'));
+            // the translator to enabled
+            // set the primary locale as requested by the client
+            if ($locale !== null) {
+                $translator->setLocale($locale);
+                // set the fallback
+                $translator->setFallbackLocale('en_US');
+            }
+            $renderer = $sm->get(PhpRenderer::class);
+            /**
+             * This allows view helpers to automatically translate things like
+             * the Menu component if the labels have been translated.
+             * Also allows for translating Form validator messages.
+             **/
+            $renderer->getHelperPluginManager()->configure((new ConfigProvider())->getViewHelperConfig());
         }
-        $renderer = $this->sm->get(PhpRenderer::class);
-        /**
-         * This allows view helpers to automatically translate things like
-         * the Menu component if the labels have been translated.
-         * Also allows for translating Form validator messages.
-         **/
-        $renderer->getHelperPluginManager()->configure((new ConfigProvider())->getViewHelperConfig());
     }
 }

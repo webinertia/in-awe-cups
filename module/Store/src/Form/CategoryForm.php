@@ -20,7 +20,7 @@ class CategoryForm extends BaseForm
     {
         $options = $this->getOptions();
         $this->add([
-            'name' => 'image-data',
+            'name' => 'file-data',
             'type' => ImageUpload::class,
         ])->add([
             'name' => 'category-data',

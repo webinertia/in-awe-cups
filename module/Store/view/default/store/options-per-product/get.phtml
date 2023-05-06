@@ -1,0 +1,42 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<?php
+if (isset($this->form)) {
+    $this->form->addSubmit();
+    echo $this->dijitForm($this->form);
+}
+?>
+<script>
+require(
+    [
+        "dojo/dom",
+        "dojo/request",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/form/Button",
+        "dijit/form/CheckBox",
+        "dojox/validate/web",
+        "dojo/domReady!"
+    ], function(dom, request, on, Manager, registry, Button, CheckBox){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    // const aurora = new Aurora();
+    // aurora.set("serviceManager", registry);
+    // dojo.connect(registry.byId("storeWorkspace"), "onLoad", function() {
+    //     const storeWorkspace = registry.byId("storeWorkspace");
+    //     // stack container content pane we are connected too
+    //     console.info("connected to storeWorkspace in create product action");
+    // });// end dojo.connect
+});
+</script>

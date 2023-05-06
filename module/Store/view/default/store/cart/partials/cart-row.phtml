@@ -1,0 +1,23 @@
+<tr>
+    <td class="align-middle">
+        <img src="/modules/store/product/images/<?=$this->image?>" alt="" style="width: 50px;">
+    </td>
+    <td class="align-middle">
+        <span class="cart-checkout-item-label"><?=$this->label?></span>
+    </td>
+    <td class="align-middle">
+        <?php
+        if (isset($this->Color)) : ?>
+            Color: <?=$this->Color?><br>
+        <?php
+        endif; ?>
+    </td>
+    <td class="align-middle"><?=$this->cost?></td>
+    <td class="align-middle">
+        <button
+        data-id="<?=$this->id?>"
+        data-cartid="<?=$this->cartId?>"
+        class="remove-cart-item btn btn-sm btn-primary"><i class="fa fa-times"></i>
+        </button>
+    </td>
+</tr>

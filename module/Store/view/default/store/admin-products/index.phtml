@@ -1,0 +1,376 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ * base product url /admin/store/manage/products[/:action[/:id]]
+ * base category url /admin/store/manage/categories[/:action[/:id]]
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<div id="grid"></div>
+<script>
+require([
+    "dojo/dom",
+    "dojo/dom-prop",
+    "dojo/dom-form",
+    "dojo/on",
+    "dojo/topic",
+    "dojo/request",
+    "dojo/_base/array",
+    "dojo/_base/window",
+    "dojo/_base/lang",
+    "dojo/query",
+    "dojo/_base/declare",
+    "dojo-dstore/SimpleQuery",
+    "dojo-dstore/Trackable",
+    "dojo-dstore/Rest",
+    "dgrid/OnDemandGrid",
+    "dgrid/Keyboard",
+    "dgrid/Selection",
+    "dgrid/extensions/DijitRegistry",
+    "dijit/Editor",
+    "dijit/Dialog",
+    "dijit/registry",
+    "dijit/Menu",
+    "dijit/MenuItem",
+    "dijit/MenuSeparator",
+    "dijit/PopupMenuItem",
+    "dojox/validate",
+    "dojox/validate/web",
+    "aurora/editor/plugins/Save",
+    "dijit/_editor/RichText",
+    "dijit/_editor/plugins/FontChoice",
+    "dijit/_editor/plugins/TextColor",
+    "dojo/domReady!"
+], function(dom, domProp, domForm, on, topic, request, array, window, lang, query, declare, SimpleQuery, Trackable, Rest, OnDemandGrid, Keyboard, Selection, DijitRegistry, Editor, Dialog, registry,
+            Menu, MenuItem, MenuSeparator, PopupMenuItem) {
+    // create a trackable Rest store that is query enabled
+    let store = new (declare([Rest, SimpleQuery, Trackable]))({
+        target: '/api/store/product'
+    });
+    // create the grid for handling products
+    let grid = new (declare([OnDemandGrid, Keyboard, Selection, DijitRegistry]))({
+        collection: store,
+        // only wanna show what will actually fit in a grid
+        columns: {
+            label: {
+                label: 'Product Name'
+            },
+            cost: {
+                label: 'Cost'
+            },
+            weight: {
+                label: 'Shipping Weight'
+            },
+            createdDate: {
+                label: 'Created On'
+            },
+            active: {
+                label: 'Active',
+                get: function(object) {
+                    return object.active ? 'Yes' : 'No';
+                }
+            },
+            onSale: {
+                label: 'On Sale',
+                get: function(object) {
+                    return object.onSale ? 'Yes' : 'No';
+                }
+            },
+            discount: {
+                label: 'Sale Discount'
+            },
+            saleStartDate: {
+                label: 'Sale Start'
+            },
+            saleEndDate: {
+                label: 'Sale End'
+            },
+            bundleLabel: {
+                label: 'Bundle Name'
+            },
+            sku: {
+                label: 'SKU'
+            },
+            id: {
+                label: 'System Id'
+            }
+        },
+        loadingMessage: "Loading data..."
+    }, 'grid');
+    // delegated event for clicking a row
+    grid.on('.dgrid-row:click', function(event) {
+        // get the row from the grid we just clicked on
+        let row = grid.row(event);
+        let formDialog = new Dialog({
+            id: "gridEditor",
+            title: "Editing " + row.data.label,
+            // get us a form for modifying the product data
+            href: '/admin/store/products/form',
+            onLoad: function(data) {
+                // get an instance of the form manager
+                let formManager = this.getChildren()[0];
+                // get an instance of Dijit/Editor
+                let editor = registry.byId('productEditor');
+                editor.set('value', row.data.description);
+                //console.log('editor', editor);
+                // set the row data in the form so we can edit it
+                formManager.setFormValues(row.data);
+                formManager.on('submit', function(event) {
+                    // prevent a page reload
+                    event.preventDefault();
+                    // get form data as object
+                    let prodData = domForm.toObject(formManager.srcNodeRef);
+                    // add the lame ass editors value to the correct entry
+                    prodData.description = editor.get('value');
+                    // send it
+                    let prodUpdate = request.put(store.target + '/' + prodData.id, {
+                        handleAs: 'json',
+                        data: prodData
+                    });
+                    prodUpdate.response.then(
+                        function(response) {
+                            switch(response.status) {
+                                case 200:
+                                case 202:
+                                    formDialog.hide();
+                                    grid.refresh();
+                                    // TODO: Update this to use the new pattern ie remove the items[0] usage
+                                    topic.publish('system/message', {message: response.data.items[0].label + ' has been updated.'})
+                                    break;
+                            }
+                        },
+                        function(error) {
+
+                        }
+                    );
+                    // refresh the grid so that the data updates in the grid
+                    // todo: this needs delegated to on.then so that the update occures before the
+                    grid.refresh(true);
+                });
+            },
+            onHide: function() {
+                // when we hide the dialog we have to destroy the form manager
+                // or it bitches when we try to edit another row
+                this.destroyDescendants();
+                // the dialog itself must be destroyed because if we navigate to another section and come back
+                // the dialog will still exist in the registry and it will bitch bout it
+                this.destroy();
+            }
+        });
+        // show the dialog with the edit form
+        formDialog.show();
+    });
+    // create the context menu
+    let contextMenu = new Menu({
+        targetNodeIds: [grid.domNode],
+        selector: 'div.dgrid-row'
+    });
+    // fetch the optionGroups from the server and add
+    // the entries to the contextMenu
+    // these are here like this because the get built as top level entries in the context menu
+    request.get('/admin/store/product/options/group', {
+        handleAs: 'json'
+    }).then(
+        function(response) {
+            array.forEach(response, function(cMenuItem) {
+                //console.log('cMenuItem', cMenuItem);
+                // add a MenuItem for every optionGroup
+                contextMenu.addChild(new MenuItem({
+                    label: cMenuItem.optionGroup,
+                    onClick: function(event) {
+                        //alert("clicked " + this.label);
+                        let optionDialog = new Dialog({
+                            id: "productOptionsEditor",
+                            title: cMenuItem.optionGroup + ' options for "' + contextMenu.label + '"',
+                            // get us a form for modifying the product data
+                            href: '/product/' + contextMenu.id + '/' + cMenuItem.optionGroup,
+                            onLoad: function(data) {
+                                // get an instance of the form manager
+                                let formManager = this.getChildren()[0];
+                                // set the row data in the form so we can edit it
+                                //formManager.setFormValues(row.data);
+                                formManager.on('submit', function(event) {
+                                    // prevent a page reload
+                                    event.preventDefault();
+                                    // format the data and send it
+                                    //store.put();
+                                    console.log('domForm toObject', domForm.toObject(formManager.srcNodeRef));
+                                    let promise = request.put('/product/' + contextMenu.id + '/' + cMenuItem.optionGroup, {
+                                        data: domForm.toObject(formManager.srcNodeRef),
+                                        handleAs: 'json',
+                                    });
+                                    promise.response.then(
+                                        function(response) {
+                                            // handle success
+                                        },
+                                        function(error) {
+                                            // error.response
+                                        }
+                                    );
+                                    // refresh the grid so that the data updates in the grid
+                                    grid.refresh(true);
+                                });
+                            },
+                            onHide: function() {
+                                // when we hide the dialog we have to destroy the form manager
+                                // or it bitches when we try to edit another row
+                                this.destroyDescendants();
+                                // the dialog itself must be destroyed because if we navigate to another section and come back
+                                // the dialog will still exist in the registry and it will bitch bout it
+                                this.destroy();
+                            }
+                        });
+                        // show the dialog with the edit form
+                        optionDialog.show();
+                    }
+                }));
+            });
+        },
+        function(error) {
+            alert('Context Menu Error!');
+        }
+    );
+    contextMenu.addChild(new MenuSeparator);
+    /** Add the Manage Images option to the contextMenu */
+    contextMenu.addChild(new MenuItem({
+        label: 'Manage Images',
+        onClick: function(event) {
+            let pImageEditorDialog = new Dialog({
+                title: 'Image Manager',
+                href: '/product/images/api/' + contextMenu.id,
+                onLoad: function(data) {
+                    let pManagerMenu = new Menu({
+                        targetNodeIds: ["productImageManager"],
+                        selector: '.pImageManagerItem'
+                    });
+                    pManagerMenu.addChild(new MenuItem({
+                        label: 'Delete Image',
+                        onClick: function(event) {
+                            let targetImageId = domProp.get(pManagerMenu.currentTarget, 'id');
+                            console.log(targetImageId);
+                            let imgUtilPromise = request.del('/product/images/manager/' + targetImageId, {
+                                handleAs: 'json',
+                            });
+                            imgUtilPromise.response.then(
+                                function(response) {
+                                    switch(response.status) {
+                                        case 200:
+                                        case 204:
+                                            console.log(response.data);
+                                            pImageEditorDialog.hide();
+                                            topic.publish('system/message', {message: 'Image deleted.'})
+                                    }
+                                },
+                                function(error) {
+                                    pImageEditorDialog.hide();
+                                    topic.publish('system/message', {message: 'Error, image could not be deleted.'})
+                                }
+                            );
+                        }
+                    }));
+                    pManagerMenu.startup();
+                    let pManagerContext = {
+                        id: 'pManagerContext',
+                        onContextMenu: function(event) {
+                            // todo: test the removal of this in the near future
+                        }
+                    };
+                    // this hitches the right click event of the
+                    query(".pImageManagerItem").on("contextmenu", lang.hitch(pManagerContext, "onContextMenu"));
+                },
+                onHide: function() {
+                    this.destroyDescendants();
+                    this.destroy();
+                }
+            });
+            pImageEditorDialog.show();
+        }
+    }));
+    contextMenu.addChild(new MenuSeparator());
+    contextMenu.addChild(new MenuItem({
+        label: 'Upload Image',
+        onClick: function(event) {
+            let imageUploadDialog = new Dialog({
+                title: 'Uploading for product ' + contextMenu.label,
+                href: '/product/images/manager/' + contextMenu.id,
+                onLoad: function(data) {
+                    let formManager = this.getChildren()[0];
+                    formManager.on('submit', function(event) {
+                        event.preventDefault();
+                        let formData = new FormData(formManager.srcNodeRef);
+                        let uploadPromise = request.post('/product/images/manager', {
+                            data: formData
+                        });
+                        uploadPromise.response.then(
+                            function(response) {
+                                switch(response.status) {
+                                    case 200:
+                                    case 201:
+                                        topic.publish('system/message', {message: 'Image(s) for ' + contextMenu.label + ' was successfully uploaded.'})
+                                        break;
+                                }
+                            },
+                            function(error) {
+                                switch(error.response.status) {
+                                    case 406:
+                                    case 500:
+                                        if (error.response.message !== undefined) {
+                                            topic.publish('system/message', error.response.message);
+                                        }
+                                        break;
+                                }
+                            }
+                        );
+                    });
+                },
+                onHide: function() {
+                    this.destroyDescendants();
+                    this.destroy();
+                }
+            });
+            imageUploadDialog.show();
+        }
+    }));
+    contextMenu.addChild(new MenuSeparator());
+        // add the delete product options to the contextMenu
+    contextMenu.addChild(new MenuItem({
+        label: 'Delete Product',
+        onClick: function(event) {
+            store.remove(contextMenu.id);
+            grid.refresh(true);
+        }
+    }));
+    contextMenu.addChild(new MenuSeparator());
+    // startup the contextMenu
+    contextMenu.startup();
+
+    grid.on('.dgrid-row:contextmenu', function(event) {
+        // prevent the system right click menu from showing
+        // so that we can tie a dijit context menu to this event
+        // will give us access to load a preview of thumbnails and
+        // allow us to update the images via a different dialog
+        event.preventDefault();
+        // start up the contextMenu, must be create outside of the handler
+        // or the first time the handler fires its not shown
+        // contextMenu.open();
+        //let eventData = grid.row(event);
+        let rowData = grid.row(event);
+        let mixedInMenu = lang.mixin(contextMenu, rowData.data);
+        //console.log("mixedInMenu", mixedInMenu.id);
+    });
+    store.on('update', function(event) {
+        // get the dialog from the registry so we can hide it
+        let dialog = registry.byId('gridEditor');
+        dialog.hide();
+    });
+    // startup the grid
+    grid.startup();
+});
+</script>

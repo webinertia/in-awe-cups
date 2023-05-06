@@ -5,13 +5,11 @@ return [
         'active' => '0',
         'name' => 'default',
         'fallback' => 'default',
-        'has_layout' => '1',
     ],
-    'inawecups' => [
+    'dark' => [
         'id' => '2',
         'active' => '1',
-        'name' => 'inawecups',
+        'name' => 'dark',
         'fallback' => 'default',
-        'has_layout' => '1',
     ],
 ];

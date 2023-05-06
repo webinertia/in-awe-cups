@@ -18,13 +18,13 @@ class ProductsByCategoryTableFactory implements FactoryInterface
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = NULL)
     {
         $resultSet = new ResultSet();
-        $resultSet->setArrayObjectPrototype(new ProductByCategory([]));
+        $resultSet->setArrayObjectPrototype(new ProductByCategory());
         return new ProductsByCategoryTable(
             'store_products_by_category_lookup',
             $container->get('EventManager'),
             $resultSet,
             true,
-            new ProductsByCategoryListener(),
+            null,
             $container->get(AdapterInterface::class)
         );
     }

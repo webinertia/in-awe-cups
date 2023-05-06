@@ -1,0 +1,111 @@
+<!-- Shop Sidebar Start -->
+<div class="col-lg-3 col-md-12">
+    <?php
+    if (isset($this->productOptions) && is_array($this->productOptions)) :
+    ?>
+        <form
+        id="product-search"
+        enctype="multipart/form-data"
+        name="product-search"
+        method="get"
+        action="<?=$this->url('store/product', ['action' => 'index', 'category' => $this->category, 'product' => 'all'], ['query' => ['page' => 1]])?>">
+        <input type="hidden" name="page" value="1">
+        <button
+        type="submit"
+        class="btn btn-primary btn-lg"
+        style="margin-bottom:10px;">Filter</button>
+        <!-- product options Start -->
+        <?php if ($this->config('module_settings')['store']['search_options']['price_filtering_enabled']) :?>
+            <div class="border-bottom mb-4 pb-4">
+                <button
+                class="btn btn-secondary btn-sm"
+                type="button"
+                data-toggle="collapse"
+                data-target="fieldset#cost"
+                aria-expanded="false"
+                aria-controls="cost"
+                style="margin-top:5px;">Cost</button>
+                <fieldset id="cost" class="collapse" name="cost">
+                    <div class="custom-control custom-radio d-flex align-items-center justify-content-between mb-3">
+                        <input
+                            type="radio"
+                            class="custom-control-input"
+                            form="product-search"
+                            name="cost"
+                            value="all"
+                            id="cost_all" checked>
+                        <label class="custom-control-label" for="cost_all">
+                            Any Price
+                        </label>
+                    </div>
+                    <?php
+                    $step = $this->config('module_settings')['store']['search_options']['price_step_value'];
+                    $inputCount = $this->maxPrice / $step;
+                    for ($i=0; $i < $inputCount; $i++) :
+                        $start = $i === 0 ? $i : $i * $step;
+                        $end = $start + $step;
+                    ?>
+                    <div class="custom-control custom-radio d-flex align-items-center justify-content-between mb-3">
+                        <input
+                            type="radio"
+                            class="custom-control-input"
+                            form="product-search"
+                            name="cost"
+                            value="<?=$end?>"
+                            id="cost_<?=$end?>">
+                        <label class="custom-control-label" for="cost_<?=$end?>">
+                            <?php echo '$' . $start . ' - $' . $end;?>
+                        </label>
+                        <span class="badge border font-weight-normal"><?=$this->productCount($this->category, 'cost')?></span>
+                    </div>
+                    <?php
+                        endfor;
+                    ?>
+                </fieldset>
+            </div>
+        <?php endif; ?>
+            <!-- Product Options End -->
+        <?php
+        foreach ($this->productOptions as $optionGroup => $options) :
+        ?>
+            <!-- Options Start -->
+            <div class="border-bottom mb-4 pb-4">
+                <button
+                class="btn btn-secondary btn-sm"
+                type="button"
+                data-toggle="collapse"
+                data-target="fieldset#<?=$optionGroup?>"
+                aria-expanded="false"
+                aria-controls="<?=$optionGroup?>">
+                <?=$optionGroup?></button>
+                <fieldset id="<?=$optionGroup?>" class="collapse" name="<?=$optionGroup?>">
+                    <?php
+                    foreach($options as $option) :
+                    ?>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            form="product-search"
+                            name="<?=$optionGroup?>[<?=$option?>]"
+                            value="<?=$option?>"
+                            id="<?=$optionGroup . '_' . $option?>"
+                            <?=in_array($option, $this->query) ? 'checked' : ''?>>
+                        <label class="custom-control-label" for="<?=$optionGroup . '_' . $option?>"><?=$option?></label>
+                        <span class="badge border font-weight-normal"><?=$this->productCount($this->category, $option)?></span>
+                    </div>
+                    <?php
+                    endforeach;
+                    ?>
+                </fieldset>
+            </div>
+            <!-- Options End -->
+        <?php
+        endforeach;
+        ?>
+        </form>
+    <?php
+    endif;
+    ?>
+</div>
+<!-- Shop Sidebar End -->

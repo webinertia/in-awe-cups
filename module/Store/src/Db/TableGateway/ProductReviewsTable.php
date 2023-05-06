@@ -1,13 +1,18 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Store\Db\TableGateway;
-use Application\Db\TableGateway\TableGatewayTrait;
-use Laminas\Db\TableGateway\TableGateway;
+
+use App\Db\TableGateway\GatewayTrait;
+use App\Db\TableGateway\TableGateway;
 use Laminas\Db\ResultSet\ResultSet;
 use Store\Model\ProductReview;
-class ProductReviewsTable extends TableGateway
+
+final class ProductReviewsTable extends TableGateway
 {
-    use TableGatewayTrait;
-    use TableGatewayTrait;
+    use GatewayTrait;
+
     public function __construct($table, $container)
     {
         parent::__construct($table, $container);

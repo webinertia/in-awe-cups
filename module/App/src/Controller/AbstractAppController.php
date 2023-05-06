@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Controller\ControllerInterface;
 use App\Controller\Trait\AjaxActionTrait;
+use App\Controller\Trait\QueryParamsTrait;
 use App\Service\AppSettingsAwareTrait;
 use App\Session\SessionContainerAwareTrait;
 use Laminas\Form\FormElementManager;
@@ -13,6 +14,7 @@ use Laminas\Http\PhpEnvironment\Response;
 use Laminas\Http\PhpEnvironment\Request;
 use Laminas\I18n\Translator\TranslatorAwareTrait;
 use Laminas\Mvc\Controller\AbstractActionController;
+use Laminas\Mvc\MvcEvent;
 use Laminas\Permissions\Acl\Resource\ResourceInterface;
 use Laminas\View\Model\ViewModel;
 use User\Acl\AclAwareTrait;
@@ -47,6 +49,7 @@ abstract class AbstractAppController extends AbstractActionController implements
     use SessionContainerAwareTrait;
     use TranslatorAwareTrait;
     use UserServiceAwareTrait;
+    use QueryParamsTrait;
 
     /** @var Request $request */
     protected $request;
@@ -82,5 +85,11 @@ abstract class AbstractAppController extends AbstractActionController implements
         $this->view->setVariables([
             'resourceId' => null,
         ]);
+    }
+
+    public function onDispatch(MvcEvent $e)
+    {
+        $this->ajaxAction();
+        parent::onDispatch($e);
     }
 }

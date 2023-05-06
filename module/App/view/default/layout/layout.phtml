@@ -1,0 +1,151 @@
+<?php
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+use Webinertia\Utils\Debug;
+
+/**
+ * @var PhpRenderer|HelperTrait $this
+ */
+$view = $this->config('app_settings')['view'];
+?>
+<?= $this->doctype() ?>
+<html class="h-100" data-bs-theme="light" lang="en" prefix="og: http://ogp.me/ns#">
+    <head>
+        <?= $this->headTitle($view['site_name'] ?? '')->setSeparator(' - ')->setAutoEscape(false); ?>
+        <?php
+        $this->headMeta()
+        ->setCharSet('UTF-8')
+        ->appendName('viewport', 'width=device-width, initial-scale=1.0')
+        ->appendHttpEquiv('X-UA-Compatible', 'IE=edge');
+        ?>
+
+        <?= $this->headMeta(); ?>
+        <!-- Ie styles -->
+        <?= $this->headLink(
+            [
+                'rel'  => 'shortcut icon',
+                'type' => 'image/vnd.microsoft.icon',
+                'href' => $this->basePath() . '/images/favicon.ico',
+            ]
+        )->appendStylesheet($this->basePath('theme/default/css/bootstrap.min.css'))
+        ->appendStylesheet($this->basePath('theme/default/css/style.css'))
+        ->appendStylesheet($this->basePath('theme/default/mdi/css/materialdesignicons.min.css')); // this may be removed
+        ?>
+        <?php
+            $this->inlineScript()
+            ->appendFile($this->basePath('js/popper/popper.min.js'))
+            ->appendFile($this->basePath('js/bs/bootstrap.min.js'))
+            ->appendFile($this->basePath('js/dojo/dojo.js'), 'text/javascript', ['data-dojo-config' => 'async: true']
+            )->setAllowArbitraryAttributes(true)
+            ->appendScript('var dojoConfig = {
+                async: true,
+                selectorEngine: "acme",
+                baseUrl: "/js/",
+                packages: [
+                    {name: "dojo", location: "/dojo"}
+                ]
+            };
+            require(["app/app"], function(App) {
+                const app = new App();
+                app.init();
+            });');
+        ?>
+        <!-- Scripts -->
+        <?= $this->headScript() ?>
+    </head>
+    <body class="d-flex flex-column h-100">
+        <nav id="main-nav" class="navbar navbar-expand-md pt-0">
+            <div class="container rounded-bottom bg-body-secondary shadow-sm mt-0">
+                <div class="navbar-header">
+                    <button
+                        class="navbar-toggler"
+                        type="button"
+                        data-toggle="collapse"
+                        data-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation"
+                    >
+                     <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <a class="navbar-brand" href="<?= $this->url('home') ?>"><?= $this->translate($view['site_name'] ?? 'Home'); ?></a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <?php
+                        echo $this->navigation('default')
+                        ->menu()
+                        ->setMinDepth(0)
+                        ->setMaxDepth(0)
+                        ->setUlClass('nav navbar-nav');
+                    ?>
+                </div>
+            </div>
+        </nav>
+        <main class="flex-shrink-0 mt-5 mb-5">
+            <div class="container">
+                <div
+                    class="modal success"
+                    id="system-message-modal"
+                    tabindex="-1"
+                    aria-labelledby="system-message-title"
+                    aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <span class="modal-title fs-5" id="system-message-title">System Message</span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div id="system-message" class="modal-body">
+                                    <div id="sys-message-alert" class="alert" role="alert"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php
+                    $flash = $this->flashMessenger();
+                    $flash->setMessageOpenFormat('<div%s role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                        </button>
+                        <div>')
+                    ->setMessageSeparatorString('</div><div>')
+                    ->setMessageCloseString('</div></div>');
+                    $plugin = $this->flashMessenger()->getPluginFlashMessenger();
+                    if ($plugin->hasCurrentErrorMessages()) {
+                        echo $flash->render('error', ['alert', 'alert-dismissible', 'alert-danger']);
+                    }
+                    if ($plugin->hasCurrentInfoMessages()) {
+                        echo $flash->render('info', ['alert', 'alert-dismissible', 'alert-info']);
+                    }
+                    if ($plugin->hasCurrentSuccessMessages()) {
+                        echo $flash->render('success', ['alert', 'alert-dismissible', 'alert-success']);
+                    }
+                ?>
+                <?php
+                    if ((bool) $view['show_breadcrumbs']) {
+                        echo $this->navigation()->breadcrumbs()->setMinDepth(0)->render();
+                    }
+                ?>
+                <div id="app-workspace">
+                    <?= $this->content ?>
+                </div>
+            </div>
+        </main>
+        <footer class="footer mt-auto">
+            <div class="container pb-3 rounded-top bg-body-secondary">
+                <div class="row pt-2">
+                    <div class="col">
+                        &copy; <?= date('Y') ?>
+                        <a href="<?= $view['copyright_link'] ?? '#'; ?>">
+                        <?= $view['copyright_text'] ?? 'Default text'; ?></a>
+                        |
+                        <?= $view['footer_text'] ?? 'Default Text'; ?>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <?= $this->inlineScript() ?>
+    </body>
+</html>

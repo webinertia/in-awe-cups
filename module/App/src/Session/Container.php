@@ -8,4 +8,6 @@ use Laminas\Session\AbstractContainer;
 
 class Container extends AbstractContainer
 {
+    /** @var string $context */
+    protected $context;
 }

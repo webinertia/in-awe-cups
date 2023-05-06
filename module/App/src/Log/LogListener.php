@@ -10,19 +10,31 @@ use Laminas\EventManager\EventInterface;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\EventManager\ListenerAggregateInterface;
 use Laminas\EventManager\ListenerAggregateTrait;
+use Laminas\Mvc\I18n\Translator;
+use Laminas\I18n\Translator\TranslatorAwareInterface;
+use Laminas\I18n\Translator\TranslatorAwareTrait;
 use Psr\Log\LoggerInterface;
 
-final class LogListener implements ListenerAggregateInterface
+final class LogListener implements ListenerAggregateInterface, TranslatorAwareInterface
 {
     use ListenerAggregateTrait;
     use LoggerAwareTrait;
+    use TranslatorAwareTrait;
 
     /** @var LoggerInterface $logger */
     protected $logger;
+    /** @var Translator $translator */
+    protected $translator;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, Translator $translator, array $config)
     {
         $this->setLogger($logger);
+        $this->translator = $translator;
+        //
+        if ($config['server']['log_errors']) {
+            $log = $this->logger->getLogger();
+            $log::registerErrorHandler($log, true);
+        }
     }
 
     /** @inheritDoc */
@@ -90,11 +102,10 @@ final class LogListener implements ListenerAggregateInterface
         }
         if ($passContext) {
             unset($params['translate']);
-            $this->logger->$name($logMessage, $params);
+            $this->logger->$name($this->getTranslator()->translate($logMessage), $params);
         } else {
             unset($params);
-            $this->logger->$name($logMessage);
+            $this->logger->$name($this->getTranslator()->translate($logMessage));
         }
-       // $this->logger->$name($logMessage, $params);
     }
 }

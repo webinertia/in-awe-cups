@@ -46,6 +46,12 @@ class AdminController extends AbstractAppController implements AdminControllerIn
         return $this->view;
     }
 
+    public function settingsAction(): ModelInterface
+    {
+        $this->ajaxAction();
+        return $this->view;
+    }
+
     public function getResourceId(): string
     {
         return 'admin';

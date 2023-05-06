@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * NOT USED AT THIS TIME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ */
+
 declare(strict_types=1);
 
 namespace Store\Controller;
@@ -23,6 +27,7 @@ class IndexController extends AbstractAppController
 
     public function indexAction(): ModelInterface
     {
+
         $cartData    = [];
         $products    = $this->getService(Product::class);
         $allProducts = $products->fetchAll();

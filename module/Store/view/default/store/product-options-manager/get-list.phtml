@@ -1,0 +1,291 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ * base product url /admin/store/manage/products[/:action[/:id]]
+ * base category url /admin/store/manage/categories[/:action[/:id]]
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<div id="optionGrid"></div>
+<script>
+require([
+    "dojo/dom",
+    "dojo/dom-form",
+    "dojo/on",
+    "dojo/topic",
+    "dojo/request",
+    "dojo/_base/array",
+    "dojo/_base/window",
+    "dojo/_base/lang",
+    "dojo/query",
+    "dojo/_base/declare",
+    "dojo-dstore/SimpleQuery",
+    "dojo-dstore/Trackable",
+    "dojo-dstore/Rest",
+    "dgrid/OnDemandGrid",
+    "dgrid/Keyboard",
+    "dgrid/Selection",
+    "dgrid/extensions/DijitRegistry",
+    "dijit/ConfirmDialog",
+    "dijit/Dialog",
+    "dijit/registry",
+    "dijit/Menu",
+    "dijit/MenuItem",
+    "dijit/MenuSeparator",
+    "dijit/PopupMenuItem",
+    "dijit/Editor",
+    "dijit/form/Button",
+    "dojox/validate",
+    "dojox/validate/web",
+    "dijit/_editor/RichText",
+    "dijit/_editor/plugins/FontChoice",
+    "dijit/_editor/plugins/TextColor",
+    "dojo/domReady!"
+], function(dom, domForm, on, topic, request, array, window, lang, query, declare, SimpleQuery, Trackable, Rest, OnDemandGrid,
+            Keyboard, Selection, DijitRegistry, ConfirmDialog, Dialog, registry, Menu, MenuItem, MenuSeparator,
+            PopupMenuItem, Editor, Button) {
+    // create a trackable Rest store that is query enabled
+    let optionStore = new (declare([Rest, SimpleQuery, Trackable]))({
+        // /api/store/product/options/provider[/:category[/:optionGroup[/:option[/:id]]]]
+        target: '/api/admin/store/product/option/provider'
+    });
+    // create the grid for handling products
+    let optionGrid = new (declare([OnDemandGrid, Keyboard, Selection, DijitRegistry]))({
+        collection: optionStore,
+        // only wanna show what will actually fit in a grid
+        // columns: {
+        //     label: {
+        //         label: 'Product Name'
+        //     },
+        //     cost: {
+        //         label: 'Cost'
+        //     },
+        //     weight: {
+        //         label: 'Shipping Weight'
+        //     },
+        //     createdDate: {
+        //         label: 'Created On'
+        //     },
+        //     active: {
+        //         label: 'Active',
+        //         get: function(object) {
+        //             return object.active ? 'Yes' : 'No';
+        //         }
+        //     },
+        // }
+        columns: {
+            category: {
+                label: 'Category',
+            },
+            optionGroup: {
+                label: 'Option Group',
+            },
+            option: {
+                label: 'Option Value',
+            },
+            cost: {
+                label: 'Cost',
+                // get: function(object) {
+                //     return object.cost === null ? '0.00' : object.cost;
+                // }
+            },
+            id: {
+                label: 'System {Record Id}',
+            }
+            // optionGroup: 'Option Group',
+            // option: 'Option',
+            // cost: 'Cost',
+            // id: 'Record Id',
+        },
+        loadingMessage: "Loading data..."
+    }, 'optionGrid');
+
+    // create the context menu
+    let contextMenu = new Menu({
+        targetNodeIds: [optionGrid.domNode],
+        selector: 'div.dgrid-row'
+    });
+    // add a separator
+    contextMenu.addChild(new MenuSeparator);
+        // add the create options menu item
+        contextMenu.addChild(new MenuItem({
+        label: 'Add Option',
+        onClick: function(event) {
+           // console.log('contextMenu', contextMenu);
+            let optionGroupDialog = new Dialog({
+                id: 'optionUtil',
+                title: 'Adding Option to ' + contextMenu.label,
+                href: '/admin/store/manage/categories/option-group-form',
+                onLoad: function(data) {
+                    //console.log('data', data);
+                    // get an instance of the form manager
+                    let formManager = this.getChildren()[0];
+                    //console.log(formManager);
+                    // let setData = {category: contextMenu.label, optionGroup: contextMenu.optionGroup, option: contextMenu.option};
+                    // formManager.setFormValues(setData);
+                    formManager.on('submit', function(event) {
+                        // prevent a page reload
+                        event.preventDefault();
+                        // send the post request to the API create handler
+                        let promise = request.post('/admin/store/product/options/group', {
+                            data: domForm.toObject(formManager.srcNodeRef),
+                            // be sure we are targeting the RestFul backend API method handlers
+                            handleAs: 'json',
+                            // give the backend up to 2 seconds to respond
+                        });
+                        promise.response.then(
+                            function(response) {
+                                switch(response.status) {
+                                    case 201:
+                                        //console.log('response', response);
+                                        if (response.data.message !== undefined) {
+                                            topic.publish('system/message', response.data);
+                                        } else {
+                                            topic.publish('system/message', {message: 'The server failed to send a correctly formatted response'});
+                                        }
+                                        optionGrid.refresh();
+                                        optionGroupDialog.hide();
+                                        break;
+                                }
+                            },
+                            function(error) {
+                                // send message from error.response.data = {message: from server}
+                                switch (error.response.status) {
+                                    case 409:
+                                    case 513:
+                                        if (error.response.data.message !== undefined) {
+                                            topic.publish('system/message', error.response.data);
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        );
+                    });
+                },
+                onHide: function() {
+                    // Destroy everything!!!
+                    this.destroyDescendants();
+                    this.destroy();
+                }
+            });
+            optionGroupDialog.show();
+        }
+    }));
+    contextMenu.addChild(new MenuSeparator);
+        // add the create options menu item
+        contextMenu.addChild(new MenuItem({
+        label: 'Edit Option',
+        onClick: function(event) {
+           // console.log('contextMenu', contextMenu);
+            let optionGroupDialog = new Dialog({
+                id: 'optionUtil',
+                title: 'Editing {Category:' + contextMenu.category + ' OptionGroup: ' + contextMenu.optionGroup + ' Option: ' + contextMenu.option + ' }',
+                href: '/admin/store/manage/categories/option-group-form',
+                onLoad: function(data) {
+                    //console.log('data', data);
+                    // get an instance of the form manager
+                    let formManager = this.getChildren()[0];
+                    let setData = {id: contextMenu.id, category: contextMenu.category, optionGroup: contextMenu.optionGroup, option: contextMenu.option, cost: contextMenu.cost};
+                    formManager.setFormValues(setData);
+                    formManager.on('submit', function(event) {
+                        // prevent a page reload
+                        event.preventDefault();
+                        // send the request and get the deferred
+                        let promise = request.put('/admin/store/product/options/group/' + contextMenu.id, {
+                            data: domForm.toObject(formManager.srcNodeRef),
+                            // be sure we are targeting the RestFul backend API method handlers
+                            handleAs: 'json',
+                            // give the backend up to 2 seconds to respond
+                            //timeout: 2000
+                        });
+                        promise.response.then(
+                            function(response) {
+                                switch(response.status) {
+                                    case 200:
+                                    case 202:
+                                        console.log('response.data', response.data);
+                                        if (response.data.message !== undefined) {
+                                            topic.publish('system/message', response.data);
+                                        } else {
+                                            topic.publish('system/message', {message: 'System failed to send a correctly formatted response.'});
+                                        }
+                                        optionGrid.refresh();
+                                        optionGroupDialog.hide();
+                                        break;
+                                }
+                            },
+                            function(error) {
+                                // we *should* be able to depend on the following object members being defined
+                                switch (error.response.status) {
+                                    // case(s) 455 option not found, 513 Data not saved
+                                    case 455:
+                                    case 513:
+                                        console.log('455, 513 error response handler', error.response);
+                                        if (error.response.message !== undefined) {
+                                            topic.publish('system/message', error.response.data);
+                                        } else {
+                                            topic.publish('system/message', {message: 'System failed to send a correctly formatted response.'});
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        );
+                    });
+                },
+                onHide: function() {
+                    // Destroy everything!!!
+                    this.destroyDescendants();
+                    this.destroy();
+                }
+            });
+            optionGroupDialog.show();
+        }
+    }));
+    contextMenu.addChild(new MenuSeparator);
+    // add the delete product options to the contextMenu, its last to prevent it from being clicked on accident
+    contextMenu.addChild(new MenuItem({
+        label: 'Delete Option',
+        onClick: function(event) {
+            // todo add a confirmation dialog to this
+            optionStore.remove(contextMenu.id);
+            optionGrid.refresh(true);
+            topic.publish('system/message', {message: contextMenu.label + ' was deleted.'});
+        }
+    }));
+    // startup the contextMenu
+    contextMenu.startup();
+    optionGrid.on('.dgrid-row:contextmenu', function(event) {
+        // prevent the system right click menu from showing
+        // so that we can tie a dijit context menu to this event
+        // will give us access to load a preview of thumbnails and
+        // allow us to update the images via a different dialog
+        event.preventDefault();
+        // start up the contextMenu, must be create outside of the handler
+        // or the first time the handler fires its not shown
+        // contextMenu.open();
+        //let eventData = grid.row(event);
+        let rowData = optionGrid.row(event);
+        let mixedInMenu = lang.mixin(contextMenu, rowData.data);
+        //console.log("mixedInMenu", mixedInMenu.id);
+    });
+    optionStore.on('update', function(event) {
+        // get the dialog from the registry so we can hide it
+        let dialog = registry.byId('categoryEditEditor');
+        dialog.hide();
+    });
+
+    // startup the grid
+    optionGrid.startup();
+});
+</script>

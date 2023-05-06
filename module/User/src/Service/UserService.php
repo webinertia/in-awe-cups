@@ -14,6 +14,7 @@ use User\Service\UserServiceInterface;
 
 use function array_key_exists;
 
+#[\AllowDynamicProperties]
 class UserService implements UserServiceInterface, ModelInterface
 {
     use ModelTrait;

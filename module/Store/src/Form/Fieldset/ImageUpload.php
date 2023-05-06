@@ -9,9 +9,12 @@ use Laminas\Form\Element\File;
 use Laminas\Form\Element\Hidden;
 use Laminas\Form\Fieldset;
 use Laminas\InputFilter\InputFilterProviderInterface;
+use Laminas\Filter\ToInt;
+use Laminas\Filter\ToNull;
 use Laminas\Validator\File\ImageSize;
 use Laminas\Validator\File\IsImage;
 use Laminas\Validator\File\FilesSize;
+use User\Form\Element\UserId;
 
 final class ImageUpload extends Fieldset implements InputFilterProviderInterface
 {
@@ -25,10 +28,9 @@ final class ImageUpload extends Fieldset implements InputFilterProviderInterface
     public function init()
     {
         $options = $this->getOptions();
-
         $this->add([
             'name' => 'userId',
-            'type' => Hidden::class,
+            'type' => UserId::class,
         ]);
         $this->add([
             'name' => 'productId',
@@ -56,26 +58,26 @@ final class ImageUpload extends Fieldset implements InputFilterProviderInterface
     public function getInputFilterSpecification()
     {
         return [
-            // 'images' => [
-            //     'required' => false,
-            //     'validators' => [
-            //         ['name' => IsImage::class],
-            //         [
-            //             'name'    => FilesSize::class,
-            //             'options' => [
-            //                 'min' => '1KB',
-            //                 'max' => '250KB',
-            //             ],
-            //         ],
-            //         [
-            //             'name'    => ImageSize::class,
-            //             'options' => [
-            //                 'maxWidth'  => 1032,
-            //                 'maxHeight' => 1032,
-            //             ],
-            //         ],
-            //     ],
-            // ],
+            'userId' => [
+                'required' => true,
+                'filters' => [
+                    ['name' => ToInt::class],
+                ],
+            ],
+            'productId' => [
+                'required' => false,
+                'filters' => [
+                    ['name' => ToInt::class],
+                    ['name' => ToNull::class],
+                ],
+            ],
+            'categoryId' => [
+                'required' => false,
+                'filters' => [
+                    ['name' => ToInt::class],
+                    ['name' => ToNull::class],
+                ],
+            ],
         ];
     }
 }

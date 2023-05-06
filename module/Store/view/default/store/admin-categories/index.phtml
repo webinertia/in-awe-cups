@@ -1,0 +1,286 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ * base product url /admin/store/manage/products[/:action[/:id]]
+ * base category url /admin/store/manage/categories[/:action[/:id]]
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<div id="categoryGrid"></div>
+<script>
+require([
+    "dojo/dom",
+    "dojo/dom-prop",
+    "dojo/dom-form",
+    "dojo/on",
+    "dojo/topic",
+    "dojo/request",
+    "dojo/_base/array",
+    "dojo/_base/window",
+    "dojo/_base/lang",
+    "dojo/query",
+    "dojo/_base/declare",
+    "dojo-dstore/SimpleQuery",
+    "dojo-dstore/Trackable",
+    "dojo-dstore/Rest",
+    "dgrid/OnDemandGrid",
+    "dgrid/Keyboard",
+    "dgrid/Selection",
+    "dgrid/extensions/DijitRegistry",
+    "dijit/ConfirmDialog",
+    "dijit/Dialog",
+    "dijit/registry",
+    "dijit/Menu",
+    "dijit/MenuItem",
+    "dijit/MenuSeparator",
+    "dijit/PopupMenuItem",
+    "dijit/Editor",
+    "dijit/form/Button",
+    "dojox/validate",
+    "dojox/validate/web",
+    "dijit/_editor/RichText",
+    "dijit/_editor/plugins/FontChoice",
+    "dijit/_editor/plugins/TextColor",
+    "dojo/domReady!"
+], function(dom, domProp, domForm, on, topic, request, array, window, lang, query, declare, SimpleQuery, Trackable, Rest, OnDemandGrid,
+            Keyboard, Selection, DijitRegistry, ConfirmDialog, Dialog, registry, Menu, MenuItem, MenuSeparator,
+            PopupMenuItem, Editor, Button) {
+    // create a trackable Rest store that is query enabled
+    let catStore = new (declare([Rest, SimpleQuery, Trackable]))({
+        target: '/api/store/category'
+    });
+    // create the grid for handling products
+    let catGrid = new (declare([OnDemandGrid, Keyboard, Selection, DijitRegistry]))({
+        collection: catStore,
+        // only wanna show what will actually fit in a grid
+        columns: {
+            label: {
+                label: 'Category Name'
+            },
+            active: {
+                label: 'Active',
+                get: function(object) {
+                    console.log('category index.phtml column get callback', object);
+                    return object.active ? 'Yes' : 'No';
+                }
+            },
+            isBundle: {
+                label: 'Product Bundle',
+                get: function(object) {
+                    return object.isBundle ? 'Yes' : 'No';
+                }
+            }
+        },
+        loadingMessage: "Loading data..."
+    }, 'categoryGrid');
+    // delegated event for clicking a row
+    catGrid.on('.dgrid-row:click', function(event) {
+        // get the row from the grid we just clicked on
+        let row = catGrid.row(event);
+        let catFormDialog = new Dialog({
+            id: "categoryEditEditor",
+            title: "Editing " + row.data.label,
+            // get us a form for modifying the product data
+            href: '/admin/store/manage/categories/api-form',
+            onLoad: function(data) {
+                //console.log('data', data);
+                // get an instance of the form manager
+                let formManager = this.getChildren()[0];
+                // get an instance of the editor
+                let editor = registry.byId('apiCategoryEditor');
+                editor.set('value', row.data.description);
+                //console.log('editor', editor);
+                // set the row data in the form so we can edit it
+                formManager.setFormValues(row.data);
+                formManager.on('submit', function(event) {
+                    // prevent a page reload
+                    event.preventDefault();
+                    let catData = domForm.toObject(formManager.srcNodeRef);
+                    catData.description = editor.get('value');
+
+                    let catUpdate = request.put(catStore.target + '/' + row.data.id, {
+                        handleAs: 'json',
+                        data: catData
+                    });
+                    catUpdate.response.then(
+                        function(response) {
+                            switch(response.status) {
+                                case 200:
+                                case 202:
+                                    catGrid.refresh(true);
+                                    topic.publish('system/message', {message: response.data.items[0].label + ' saved succesfully!'});
+                                    catFormDialog.hide();
+                                    break;
+                            }
+
+                        },
+                        function(error) {
+                            topic.publish('system/message', {message: 'An Error occured'});
+                        }
+                    );
+                });
+            },
+            onHide: function() {
+                // when we hide the dialog we have to destroy the form manager
+                // or it bitches when we try to edit another row
+                this.destroyDescendants();
+                // the dialog itself must be destroyed because if we navigate to another section and come back
+                // the dialog will still exist in the registry and it will bitch bout it
+                this.destroy();
+            }
+        });
+        //formDialog.startup();
+        // show the dialog with the edit form
+        catFormDialog.show();
+    });
+    // create the context menu
+    let contextMenu = new Menu({
+        targetNodeIds: [catGrid.domNode],
+        selector: 'div.dgrid-row'
+    });
+
+    // add the delete product options to the contextMenu
+    contextMenu.addChild(new MenuItem({
+        label: 'Delete Category',
+        onClick: function(event) {
+            // todo add a confirmation dialog to this
+            catStore.remove(contextMenu.id);
+            catGrid.refresh(true);
+            topic.publish('system/message', {message: contextMenu.label + ' was deleted.'});
+        }
+    }));
+    contextMenu.addChild(new MenuSeparator);
+        /** Add the Manage Images option to the contextMenu */
+        contextMenu.addChild(new MenuItem({
+        label: 'Manage Images',
+        onClick: function(event) {
+            let cImageEditorDialog = new Dialog({
+                title: 'Image Manager',
+                href: '/category/images/api/' + contextMenu.id,
+                onLoad: function(data) {
+                    let cManagerMenu = new Menu({
+                        targetNodeIds: ["categoryImageManager"],
+                        selector: '.cImageManagerItem'
+                    });
+                    cManagerMenu.addChild(new MenuItem({
+                        label: 'Delete Image',
+                        onClick: function(event) {
+                            let targetImageId = domProp.get(cManagerMenu.currentTarget, 'id');
+                            console.log(targetImageId);
+                            let imgUtilPromise = request.del('/category/images/manager/' + targetImageId, {
+                                handleAs: 'json',
+                            });
+                            imgUtilPromise.response.then(
+                                function(response) {
+                                    switch(response.status) {
+                                        case 200:
+                                        case 204:
+                                            console.log(response.data);
+                                            cImageEditorDialog.hide();
+                                            topic.publish('system/message', {message: 'Image deleted.'})
+                                    }
+                                },
+                                function(error) {
+                                    cImageEditorDialog.hide();
+                                    topic.publish('system/message', {message: 'Error, image could not be deleted.'})
+                                }
+                            );
+                        }
+                    }));
+                    cManagerMenu.startup();
+                    let cManagerContext = {
+                        id: 'cManagerContext',
+                        onContextMenu: function(event) {
+                            // todo: test the removal of this in the near future
+                        }
+                    };
+                    // this hitches the right click event of the
+                    query(".pImageManagerItem").on("contextmenu", lang.hitch(cManagerContext, "onContextMenu"));
+                },
+                onHide: function() {
+                    this.destroyDescendants();
+                    this.destroy();
+                }
+            });
+            cImageEditorDialog.show();
+        }
+    }));
+    contextMenu.addChild(new MenuSeparator());
+    contextMenu.addChild(new MenuItem({
+        label: 'Upload Image',
+        onClick: function(event) {
+            let imageUploadDialog = new Dialog({
+                title: 'Uploading for category ' + contextMenu.label,
+                href: '/category/images/manager/' + contextMenu.id,
+                onLoad: function(data) {
+                    let formManager = this.getChildren()[0];
+                    formManager.on('submit', function(event) {
+                        event.preventDefault();
+                        let formData = new FormData(formManager.srcNodeRef);
+                        let uploadPromise = request.post('/category/images/manager', {
+                            data: formData
+                        });
+                        uploadPromise.response.then(
+                            function(response) {
+                                switch(response.status) {
+                                    case 200:
+                                    case 201:
+                                        topic.publish('system/message', {message: 'Image(s) for ' + contextMenu.label + ' was successfully uploaded.'});
+                                        break;
+                                }
+                            },
+                            function(error) {
+                                switch(error.response.status) {
+                                    case 406:
+                                    case 500:
+                                        if (error.response.message !== undefined) {
+                                            topic.publish('system/message', error.response.message);
+                                        }
+                                        break;
+                                }
+                            }
+                        );
+                        imageUploadDialog.hide();
+                    });
+                },
+                onHide: function() {
+                    this.destroyDescendants();
+                    this.destroy();
+                }
+            });
+            imageUploadDialog.show();
+        }
+    }));
+    // startup the contextMenu
+    contextMenu.startup();
+    catGrid.on('.dgrid-row:contextmenu', function(event) {
+        // prevent the system right click menu from showing
+        // so that we can tie a dijit context menu to this event
+        // will give us access to load a preview of thumbnails and
+        // allow us to update the images via a different dialog
+        event.preventDefault();
+        // start up the contextMenu, must be create outside of the handler
+        // or the first time the handler fires its not shown
+        // contextMenu.open();
+        //let eventData = grid.row(event);
+        let rowData = catGrid.row(event);
+        let mixedInMenu = lang.mixin(contextMenu, rowData.data);
+        //console.log("mixedInMenu", mixedInMenu.id);
+    });
+    catStore.on('update', function(event) {
+        // get the dialog from the registry so we can hide it
+        let dialog = registry.byId('categoryEditEditor');
+        dialog.hide();
+    });
+
+    // startup the grid
+    catGrid.startup();
+});
+</script>

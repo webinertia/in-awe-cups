@@ -21,6 +21,8 @@ use Store\Model\Image;
 use Laminas\Form\FormElementManager;
 use Store\Form\CategoryForm;
 use Store\Form\DojoTest;
+use Braintree\Gateway as PaymentGateway;
+use Payment\Form\Shipping;
 
 use function strpos;
 use function str_replace;
@@ -33,32 +35,19 @@ final class TestController extends AbstractAppController implements LoggerAwareI
     /** @var string $resourceId */
     protected $resourceId = 'test';
     protected $formManager;
+    protected PaymentGateway $gateway;
 
     public function __construct(
-        Category $category,
-        FormElementManager $formElementManager,
-        Image $imageModel,
-        array $config)
-    {
+        FormElementManager $formManager,
+        array $config
+    ) {
         parent::__construct($config);
-        $this->category = $category;
-        $this->formManager = $formElementManager;
-        $this->imageModel  = $imageModel;
-        $this->form        = $this->formManager->get(DojoTest::class);
+        $this->formManager = $formManager;
     }
 
     public function indexAction(): ViewModel
     {
-        $this->ajaxAction();
-        $this->form->setAttribute('action', $this->url()->fromRoute('admin.store/manage/categories', ['action' => 'create']));
-        // $data = [
-        //     'label' => 'test category data    ',
-        //     //'description' => 'test description',
-        // ];
-        // $this->category->exchangeArray($data);
-        // $this->category->save($this->category);
-        $this->view->setVariable('form', $this->form);
-
+        $this->view->setVariable('form', $this->formManager->get(Shipping::class));
         return $this->view;
     }
 }

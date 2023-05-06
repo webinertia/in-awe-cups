@@ -6,6 +6,7 @@ namespace Store\Model\Factory;
 
 use Laminas\Filter\BaseName;
 use Laminas\Filter\File\RenameUpload;
+use Laminas\Paginator\AdapterPluginManager;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerInterface;
 use Store\Db\TableGateway\ImageTable;
@@ -26,7 +27,9 @@ final class ImageFactory implements FactoryInterface
             $container->get(UserServiceInterface::class),
             $renameUpload,
             $filterManager->get(BaseName::class),
-            $container->get(ImageTable::class)
+            $container->get(ImageTable::class),
+            $container->get('config'),
+            $container->get(AdapterPluginManager::class)
         );
     }
 }

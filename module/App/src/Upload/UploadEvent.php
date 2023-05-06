@@ -8,6 +8,6 @@ use Laminas\EventManager\Event;
 
 class UploadEvent extends Event
 {
-    public const EVENT_UPLOAD        = 'upload';
-    public const EVENT_UPLOAD_DELETE = 'delete.upload';
+    public const EVENT_UPLOAD = 'upload';
+    public const EVENT_DELETE = 'delete';
 }

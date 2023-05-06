@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * phpcs:ignoreFile
+ */
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+
+<?php
+if (isset($this->showHeader) && $this->showHeader) {
+    echo $this->pageHeader(isset($this->headerTitle) ? $this->headerTitle : 'Title Not Found');
+}
+?>
+<div class="container-fluid pt-5">
+    <?php
+    if ($this->showCategories) :
+    ?>
+    <div class="row px-xl-5 pb-3">
+        <?=$this->partialLoop('/store/partials/category-listing.phtml', $this->categories);?>
+    </div>
+    <?php
+    endif;
+    ?>
+    <?php
+    if ($this->showProducts) :
+    ?>
+    <!-- product markup -->
+        <?=$this->partialLoop('/store/partials/product-listing.phtml', $this->products);?>
+    <?php
+    endif;
+    ?>
+</div>

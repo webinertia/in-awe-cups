@@ -13,6 +13,7 @@ use Psr\Container\ContainerInterface;
 use Store\Db\TableGateway\CategoriesTable;
 use Store\Db\TableGateway\Listener\CategoriesListener;
 use Store\Model\Category;
+use Store\Model\Product;
 
 class CategoriesTableFactory implements FactoryInterface
 {
@@ -20,7 +21,12 @@ class CategoriesTableFactory implements FactoryInterface
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): CategoriesTable
     {
         $resultSetPrototype = new ResultSet();
-        $resultSetPrototype->setArrayObjectPrototype(new Category(null, new Factory($container->get(InputFilterPluginManager::class))));
+        $resultSetPrototype->setArrayObjectPrototype(
+            new Category(
+                $container->get(Product::class),
+                $container->get('config')
+            )
+        );
         return new $requestedName(
             'store_categories',
             $container->get('EventManager'),

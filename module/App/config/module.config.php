@@ -10,6 +10,7 @@ use Laminas\Db\Adapter\AdapterInterface;
 use Laminas\I18n\Translator\Loader\PhpArray;
 use Laminas\Log\Logger;
 use Laminas\Mvc\I18n\Router\TranslatorAwareTreeRouteStack;
+use Laminas\Mvc\Service\ViewTemplatePathStackFactory;
 use Laminas\Router\Http\Literal;
 use Laminas\Router\Http\Placeholder;
 use Laminas\Router\Http\Segment;
@@ -25,7 +26,8 @@ return [
     'app_settings'       => [ // app_settings that are not to be edited are stored here
         'server' => [
             'app_path'        => __DIR__ . '/../../../',
-            'upload_basepath' => __DIR__ . '/../../../public/module',
+            'upload_basepath' => __DIR__ . '/../../../public/modules',
+            'captcha_path'    => __DIR__ . '/../../../public/modules/app/captcha',
             'scheme'          => $_SERVER['REQUEST_SCHEME'] ?? 'http',
             'content_security_policy' => [
                 'directives' => [
@@ -36,7 +38,7 @@ return [
             ],
         ],
         'theme' => [
-            'admin_template' => 'layout/dojo-admin',
+            'admin_template' => 'layout/admin',
         ],
     ],
     'base_dir'           => __DIR__ . '/../../../',
@@ -223,26 +225,31 @@ return [
         ],
     ],
     'listeners'          => [
-        Listener\MySqlGlobalAdapterInit::class,
-        Listener\ContentSecurityListener::class,
+        Log\LogListener::class,
         Listener\AdminListener::class,
-        Listener\ThemeLoader::class,
         Upload\UploadListener::class,
     ],
     'service_manager'    => [
+        'aliases' => [
+            'ViewTemplatePathStack' => View\Resolver\TemplatePathStack::class,
+        ],
         'factories' => [
-            Listener\MySqlGlobalAdapterInit::class  => Listener\Factory\MySqlGlobalAdapterInitFactory::class,
-            ConfigInterface::class                  => Session\ConfigFactory::class,
-            Session\Container::class                => Session\ContainerFactory::class,
-            Db\DbGateway\LogGateway::class          => Db\DbGateway\Factory\LogGatewayFactory::class,
-            Listener\AdminListener::class           => Listener\Factory\AdminListenerFactory::class,
-            Listener\ThemeLoader::class             => Listener\Factory\ThemeLoaderFactory::class,
-            Listener\ContentSecurityListener::class => ReflectionBasedAbstractFactory::class,
-            Model\Settings::class                   => Model\Factory\SettingsFactory::class,
-            Model\Theme::class                      => InvokableFactory::class,
-            Service\Email::class                    => Service\Factory\EmailFactory::class,
-            SaveHandlerInterface::class             => Session\SaveHandlerFactory::class,
-            Upload\UploadListener::class            => InvokableFactory::class,
+            ConfigInterface::class                 => Session\ConfigFactory::class,
+            Session\Container::class               => Session\ContainerFactory::class,
+            Db\DbGateway\LogGateway::class         => Db\DbGateway\Factory\LogGatewayFactory::class,
+            Log\LogListener::class                 => Log\LogListenerFactory::class,
+            Listener\AdminListener::class          => Listener\Factory\AdminListenerFactory::class,
+            Model\Settings::class                  => Model\Factory\SettingsFactory::class,
+            Model\Theme::class                     => InvokableFactory::class,
+            Service\Email::class                   => Service\Factory\EmailFactory::class,
+            SaveHandlerInterface::class            => Session\SaveHandlerFactory::class,
+            Upload\UploadListener::class           => Upload\UploadListenerFactory::class,
+            View\Resolver\TemplatePathStack::class => ViewTemplatePathStackFactory::class
+        ],
+        'delegators' => [
+            View\Resolver\TemplatePathStack::class => [
+                View\Resolver\TemplatePathStackFactory::class
+            ],
         ],
     ],
     'controllers'        => [
@@ -280,6 +287,7 @@ return [
             Filter\FqcnToModuleName::class     => InvokableFactory::class,
             Filter\TitleToLabel::class         => InvokableFactory::class,
             Filter\LabelToTitle::class         => InvokableFactory::class,
+            Filter\PadFloatString::class       => InvokableFactory::class,
         ],
     ],
     'navigation'         => [
@@ -322,15 +330,15 @@ return [
             //     'iconClass' => 'mdi mdi-speedometer text-success',
             //     'order'     => -99,
             // ],
-            [
-                'dojoType'  => 'ContentPane',
-                'widgetId'  => 'settingManager',
-                'label'     => 'Manage Settings',
-                'uri'       => '/admin/settings',
-                'iconClass' => 'mdi mdi-cogs text-danger',
-                'resource'  => 'settings',
-                'privilege' => 'edit',
-            ],
+            // [
+            //     'dojoType'  => 'ContentPane',
+            //     'widgetId'  => 'settingManager',
+            //     'label'     => 'Manage Settings',
+            //     'uri'       => '/admin/settings',
+            //     'iconClass' => 'mdi mdi-cogs text-danger',
+            //     'resource'  => 'settings',
+            //     'privilege' => 'edit',
+            // ],
             [
                 'dojoType'  => 'ContentPane',
                 'widgetId'  => 'themeManager',
@@ -376,9 +384,17 @@ return [
         'doctype'                  => 'HTML5',
         'not_found_template'       => 'error/404',
         'exception_template'       => 'error/index',
-        'template_map'             => [],
+        'template_map' => [
+            // 'layout/layout'           => __DIR__ . '/../view/layout/layout.phtml',
+            // // 'application/index/index' => __DIR__ . '/../view/application/index/index.phtml',
+            // 'error/404'               => __DIR__ . '/../view/error/404.phtml',
+            // 'error/index'             => __DIR__ . '/../view/error/index.phtml',
+        ],
         'strategies'               => [
             'ViewJsonStrategy',
+        ],
+        'template_path_stack'      => [
+            __DIR__ . '/../view',
         ],
     ],
     'translator'         => [

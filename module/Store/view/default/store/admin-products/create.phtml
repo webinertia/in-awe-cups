@@ -1,0 +1,82 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Dojo\Form\View\Helper\DijitFormEditor;
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<?php
+if (isset($this->form)) {
+    $this->formElement()->addType('editor', DijitFormEditor::class);
+    echo $this->dijitForm($this->form);
+}
+?>
+<script>
+require(
+    [
+        "aurora/Aurora",
+        "dojo/query",
+        "dijit/Editor",
+        "dojo/dom",
+        "dojo/request",
+        "dojo/request/notify",
+        "dojo/topic",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/form/FilteringSelect",
+        "dijit/form/ComboBox",
+        "dojox/layout/ContentPane",
+        "dijit/form/Form",
+        "dijit/form/Button",
+        "dijit/form/ValidationTextBox",
+        "dojox/validate",
+        "dojox/validate/web",
+        "dijit/form/CheckBox",
+        "dijit/form/CurrencyTextBox",
+        "dijit/form/DateTextBox",
+        "dijit/form/Select",
+        "dijit/_editor/RichText",
+        "dijit/_editor/plugins/FontChoice",
+        "dijit/_editor/plugins/TextColor",
+        "aurora/editor/plugins/Save",
+        "dojo/domReady!"
+    ], function(Aurora, query, Editor, dom, request, notify, on, topic, Manager, registry, FilteringSelect, ComboBox, ContentPane, dijitForm, Button){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    // const aurora = new Aurora();
+    // aurora.set("serviceManager", registry);
+    // dojo.connect(registry.byId("createPageWidget"), "onLoad", function() {
+    //     let formManager = registry.byId('createPageWidget').getChildren()[0];
+    //     console.log('formManager', formManager);
+    //     // need to target the name here,
+    //     let editorNode = query('.dijitEditor').filter('product-data[description]');
+    //     console.log('editorNode', editorNode);
+    //     notify("done", function(data) {
+    //             //console.log('data', data);
+    //             switch(data.status) {
+    //                 case 200:
+    //                 case 201:
+    //                     topic.publish('system/message', data.message);
+    //                     break;
+    //                 case 406: // Not Acceptable form errors
+    //                     console.log('406', data.errorData);
+    //                     topic.publish('system/message', {message: 'running on error'});
+    //                     break;
+    //                 case 409: // Conflict record exists category is already in use
+
+    //                     break;
+    //                 case 500:
+    //                     topic.publish('system/message', data.message);
+    //                     break;
+    //             }
+    //         });
+    // });// end dojo.connect
+});
+</script>

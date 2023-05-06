@@ -7,13 +7,15 @@ namespace Store\Controller;
 use App\Controller\AbstractAppController;
 use App\Controller\AdminControllerInterface;
 use App\Filter\LabelToTitle;
-use App\Upload\UploadAwareInterface;
 use App\Upload\UploadEvent;
 use Laminas\Filter\FilterPluginManager;
 use Laminas\Form\FormElementManager;
 use Laminas\View\Model\JsonModel;
 use Laminas\View\Model\ModelInterface;
+use Store\Api\Form\ApiCategoryForm;
 use Store\Form\CategoryForm;
+use Store\Form\CategoryEditForm;
+use Store\Form\OptionGroupForm;
 use Store\Model\Image;
 use Store\Model\Category;
 
@@ -22,12 +24,15 @@ use Throwable;
 use function array_merge_recursive;
 
 class AdminCategoriesController extends AbstractAppController
-implements AdminControllerInterface, UploadAwareInterface
+implements AdminControllerInterface
 {
+    /** @var Category $category */
     protected Category $category;
     protected Image $imageModel;
     /** @var string $resourceId */
     protected $resourceId = 'admin';
+    /** @var CategoryForm $form */
+    protected $form;
     /** @var FormElementManager $formManager */
     protected $formManager;
     /** @var LabelToTitle $labelToTitleFilter */
@@ -78,10 +83,6 @@ implements AdminControllerInterface, UploadAwareInterface
 
         if ($this->request->isPost()) {
 
-            $posted = array_merge_recursive(
-                $this->request->getPost()->toArray(), $this->request->getFiles()->toArray()
-            );
-
             $this->form->setData(
                 array_merge_recursive(
                     $this->request->getPost()->toArray(), $this->request->getFiles()->toArray()
@@ -92,20 +93,51 @@ implements AdminControllerInterface, UploadAwareInterface
                 try {
                     $this->category->exchangeArray($data['category-data']);
                     $this->category->title = $this->labelToTitleFilter->filter($this->category->label);
-                    $this->category->save($this->category);
-                    $this->imageModel->categoryId = $this->category->getLastInsertId();
-                    $this->imageModel->setUploadType(IMAGE::CATEGORY_TYPE);
-                    $this->getEventManager()->trigger(UploadEvent::EVENT_UPLOAD, $this->imageModel, $data['image-data']['images']);
-                    $jsonModel->setVariables(['success' => true, 'message' => $this->category->label . ' was created successfully.']);
-                    return $jsonModel;
+                    $this->category->save($this->category->toArray());
+                    $data['file-data']['categoryId'] = $this->category->getLastInsertId();
+                    $eventResponse = $this->getEventManager()->trigger(UploadEvent::EVENT_UPLOAD, $this->imageModel, $data['file-data']);
+                    if ($eventResponse->last()) {
+                        $this->response->setStatusCode(201);
+                        return new JsonModel(['message' => $data['category-data']['label'] . ' was successfully created']);
+                    }
                 } catch (Throwable $th) {
-                    $jsonModel->setVariables(['success' => false, 'message' => $th->getMessage()]);
+                    $this->response->setStatusCode(513)->setReasonPhrase('Data Could not be saved');
+                    return new JsonModel(['message' => $th->getMessage()]);
                 }
             } else {
-                $messages = $this->form->getMessages();
+                $this->response->setStatusCode(406);
+                return new JsonModel($this->form->getMessages());
             }
         }
         $this->view->setVariable('form', $this->form);
+        return $this->view;
+    }
+
+    public function editAction(): ModelInterface
+    {
+        $this->ajaxAction();
+        $form = $this->formManager->get(ApiCategoryForm::class);
+        $data = $this->category->fetchByColumn('id', $this->params()->fromRoute('id'));
+        if (! $this->request->isPost()) {
+            $form->setData($data->toArray());
+        }
+        $this->view->setVariable('form', $form);
+        return $this->view;
+    }
+
+    public function optionGroupFormAction(): ModelInterface
+    {
+        $this->ajaxAction();
+        $form = $this->formManager->get(OptionGroupForm::class);
+        $this->view->setVariable('form', $form);
+        return $this->view;
+    }
+
+    public function apiFormAction(): ModelInterface
+    {
+        $this->ajaxAction();
+        $form = $this->formManager->get(ApiCategoryForm::class);
+        $this->view->setVariable('form', $form);
         return $this->view;
     }
 }

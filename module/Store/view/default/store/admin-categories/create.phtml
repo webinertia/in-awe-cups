@@ -1,0 +1,54 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<?php
+if (isset($this->form)) {
+    $this->form->prepare();
+    echo $this->dijitForm($this->form);
+}
+?>
+<script>
+require(
+    [
+        "aurora/Aurora",
+        "dijit/Editor",
+        "dojo/dom",
+        "dojo/request",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/form/ComboBox",
+        "dijit/form/CheckBox",
+        "dojox/layout/ContentPane",
+        "dijit/form/Form",
+        "dijit/form/Button",
+        "dijit/form/Select",
+        "dijit/form/ValidationTextBox",
+        "dijit/_editor/RichText",
+        "dijit/_editor/plugins/FontChoice",
+        "dijit/_editor/plugins/TextColor",
+        "aurora/editor/plugins/Save",
+        "dojox/validate/web",
+        "dojo/domReady!"
+    ], function(Aurora, Editor, dom, request, on, Manager, registry, ComboBox, CheckBox, ContentPane, dijitForm, Button, Select,
+                ValidationTextBox){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    const aurora = new Aurora();
+    aurora.set("serviceManager", registry);
+    dojo.connect(registry.byId("storeWorkspace"), "onLoad", function() {
+        // const storeWorkspace = registry.byId("storeWorkspace");
+        //alert("connected to storeWorkspace in create category action");
+
+    });// end dojo.connect
+});
+</script>

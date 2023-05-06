@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace ContentManager\Model;
 
-use App\Db\TableGateway\AbstractGatewayModel;
+use App\Model\AbstractModel;
 use App\Model\ModelInterface;
 use App\Model\ModelTrait;
 use ArrayObject;
@@ -23,7 +23,7 @@ use function is_object;
 use function is_string;
 use function sprintf;
 
-final class Page extends AbstractGatewayModel implements ModelInterface
+final class Page extends AbstractModel implements ModelInterface
 {
     use ModelTrait;
 

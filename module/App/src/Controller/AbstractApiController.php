@@ -6,12 +6,14 @@ namespace App\Controller;
 
 use App\Controller\ControllerInterface;
 use App\Controller\Trait\AjaxActionTrait;
+use App\Controller\Trait\QueryParamsTrait;
 use App\Service\AppSettingsAwareTrait;
 use App\Session\SessionContainerAwareTrait;
 use Laminas\Http\PhpEnvironment\Response;
 use Laminas\Http\PhpEnvironment\Request;
 use Laminas\I18n\Translator\TranslatorAwareTrait;
 use Laminas\View\Model\JsonModel;
+use Laminas\View\Model\ViewModel;
 use Laminas\Permissions\Acl\Resource\ResourceInterface;
 use Laminas\Mvc\Controller\AbstractRestfulController;
 use User\Acl\AclAwareTrait;
@@ -21,16 +23,14 @@ use User\Service\UserServiceAwareTrait;
 
 class AbstractApiController extends AbstractRestfulController implements ControllerInterface
 {
-    use AclAwareTrait, CheckActionAccessTrait {
-        CheckActionAccessTrait::isAllowed insteadof AclAwareTrait;
-    }
+    use AclAwareTrait;
     use AjaxActionTrait;
     use AppSettingsAwareTrait;
-    use CheckActionAccessTrait;
     use ResourceAwareTrait;
     use SessionContainerAwareTrait;
     use TranslatorAwareTrait;
     use UserServiceAwareTrait;
+    use QueryParamsTrait;
 
     /** @var Request $request */
     protected $request;
@@ -55,12 +55,12 @@ class AbstractApiController extends AbstractRestfulController implements Control
      * */
     public function __construct(array $config) {
         $this->config   = $config;
-        $this->view     = new JsonModel();
+        $this->view = new ViewModel();
         $this->appPath  = $this->config['app_settings']['server']['app_path'];
-        $this->basePath = $this->appPath;
+        //$this->basePath = $this->appPath;
 
-        $this->view->setVariables([
-            'resourceId' => null,
-        ]);
+        // $this->view->setVariables([
+        //     'resourceId' => null,
+        // ]);
     }
 }

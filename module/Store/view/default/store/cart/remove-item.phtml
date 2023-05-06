@@ -1,0 +1,21 @@
+<table class="table table-bordered text-center mb-0">
+    <thead class="bg-secondary text-dark">
+        <tr>
+            <th><?=$this->translate('product_image')?></th>
+            <th><?=$this->translate('products')?></th>
+            <th><?=$this->translate('options')?></th>
+            <th><?=$this->translate('price')?></th>
+            <th><?=$this->translate('remove')?></th>
+        </tr>
+    </thead>
+    <tbody class="align-middle">
+    <?php
+    if (isset($this->products)) :
+        foreach ($this->products as $productGroup):
+    ?>
+        <?=$this->partialLoop('store/cart/partials/cart-row', $productGroup)?>
+    <?php
+        endforeach;
+    endif; ?>
+    </tbody>
+</table>

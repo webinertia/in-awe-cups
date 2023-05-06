@@ -29,25 +29,29 @@ final class IndexController extends AbstractAppController implements FormManager
     /** @var Page $page */
     protected $page;
 
+    public function __construct(Page $page, array $config)
+    {
+        parent::__construct($config);
+        $this->page = $page;
+    }
+
     public function indexAction(): mixed
     {
-        if (! $this->appSettings['load_store_as_homepage']) {
-            $this->page = $this->getService(Page::class);
+        if (! isset($this->appSettings['load_store_as_homepage']) || ! $this->appSettings['load_store_as_homepage']) {
             $homePage   = $this->page->getLandingPage();
             $this->view->setVariables([
                 'page' => $homePage,
             ]);
         } else {
-            $this->view->setVariable('store', $this->forward()->dispatch('CategoriesController', ['action' => 'category', 'name' => 'all', 'showHeader' => false]));
+            $this->view->setVariable(
+                'store',
+                $this->forward()->dispatch(
+                    'CategoriesController',
+                    ['action' => 'index', 'name' => 'all', 'showHeader' => false, 'setActive' => false]
+                )
+            );
         }
         if ($this->config['module_settings']['widget']['imageslider']['enable_imageslider']) {
-            // $this->view->setVariable(
-            //     'slider',
-            //     $this->forward()->dispatch(
-            //         'widget/imageslider',
-            //         ['action' => 'index', 'slideCount' => '2']
-            //     )
-            // );
             $this->layout()->setVariables([
                 'isHomePage' => true,
                 'slider'     => $this->forward()->dispatch(
@@ -55,13 +59,6 @@ final class IndexController extends AbstractAppController implements FormManager
                     ['action' => 'index', 'slideCount' => '2']
                 ),
             ]);
-            // $this->layout()->setVariable(
-            //     'slider',
-            //     $this->forward()->dispatch(
-            //         'ImageSliderController',
-            //         ['action' => 'index', 'slideCount' => '2']
-            //     )
-            // );
         }
         return $this->view;
     }

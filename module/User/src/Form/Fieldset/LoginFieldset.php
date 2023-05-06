@@ -54,8 +54,8 @@ final class LoginFieldset extends Fieldset implements InputFilterProviderInterfa
     {
         return [
             'userName' => [
-                'required'   => true,
-                'filters'    => [
+                'required' => true,
+                'filters'  => [
                     ['name' => StripTags::class],
                     ['name' => StringTrim::class],
                 ],

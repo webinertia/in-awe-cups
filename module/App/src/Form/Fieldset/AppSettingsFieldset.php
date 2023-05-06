@@ -31,36 +31,12 @@ final class AppSettingsFieldset extends Fieldset implements InputFilterProviderI
         $email    = new Fieldset('email');
         $security = new Fieldset('security');
         $server->add([
-            'name'    => 'app_path',
+            'name'    => 'display_time_format',
             'type'    => Text::class,
-            'options' => ['label' => 'Absolute server path to Application'],
-        ])
-        ->add([
-            'name'    => 'upload_basepath',
-            'type'    => Text::class,
-            'options' => ['label' => 'Absolute server path to public/module directory'],
-        ])
-        ->add([
-            'name'    => 'request_scheme',
-            'type'    => Text::class,
-            'options' => ['label' => 'Request Scheme, http or https, set during installation'],
-        ])
-        ->add([
-            'name'    => 'host',
-            'type'    => Text::class,
-            'options' => ['label' => 'Host, set during installation'],
-        ])
-        ->add([
-            'name'    => 'time_format',
-            'type'    => Text::class,
-            'options' => ['label' => 'Time Format, should conform to Php Datetime format'],
-        ])
-        ->add([
-            'name'    => 'time_zone',
-            'type'    => Text::class,
-            'options' => ['label' => 'Time Zone, should conform to Php DateTimeZone format'],
-        ])
-        ->add([
+            'options' => [
+                'label'              => 'Display time Format',
+            ],
+        ])->add([
             'name'    => 'log_errors',
             'type'    => Checkbox::class,
             'options' => [
@@ -69,8 +45,7 @@ final class AppSettingsFieldset extends Fieldset implements InputFilterProviderI
                 'checked_value'      => '1',
                 'unchecked_value'    => '0',
             ],
-        ])
-        ->add([
+        ])->add([
             'name'    => 'enable_translation',
             'type'    => Checkbox::class,
             'options' => [
@@ -79,16 +54,6 @@ final class AppSettingsFieldset extends Fieldset implements InputFilterProviderI
                 'checked_value'      => '1',
                 'unchecked_value'    => '0',
             ],
-        ])
-        ->add([
-            'name'    => 'captcha_path',
-            'type'    => Text::class,
-            'options' => ['label' => 'Absolute server path to captcha directory'],
-        ]);
-        $log->add([
-            'name'    => 'time_format',
-            'type'    => Text::class,
-            'options' => ['label' => 'Time Format, should conform to Php Datetime format'],
         ]);
         $seo->add([
             'name'    => 'key_words',
@@ -192,42 +157,6 @@ final class AppSettingsFieldset extends Fieldset implements InputFilterProviderI
     {
         return [
             'server'   => [
-                'app_path'           => [
-                    'required' => true,
-                    'filters'  => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
-                'upload_basepath'    => [
-                    'required' => true,
-                    'filters'  => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
-                'request_scheme'     => [
-                    'required' => true,
-                    'filters'  => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
-                'host'               => [
-                    'required' => true,
-                    'filters'  => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
-                'time_format'        => [
-                    'required' => true,
-                    'filters'  => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
-                'time_zone'          => [
-                    'required' => true,
-                    'filters'  => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
                 'log_errors'         => [
                     'required' => true,
                     'filters'  => [
@@ -236,20 +165,6 @@ final class AppSettingsFieldset extends Fieldset implements InputFilterProviderI
                 ],
                 'enable_translation' => [
                     'filters' => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
-                'captcha_path'       => [
-                    'required' => true,
-                    'filters'  => [
-                        ['name' => StringTrim::class],
-                    ],
-                ],
-            ],
-            'log'      => [
-                'time_format' => [
-                    'required' => true,
-                    'filters'  => [
                         ['name' => StringTrim::class],
                     ],
                 ],

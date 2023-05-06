@@ -25,7 +25,6 @@ class AbstractControllerFactory extends ReflectionBasedAbstractFactory
     /** @inheritDoc */
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): DispatchableInterface
     {
-
         $controller  = parent::__invoke($container, $requestedName, $options);
         $appSettings = $container->get('config')['app_settings'];
         if ($controller instanceof SessionContainerAwareInterface) {

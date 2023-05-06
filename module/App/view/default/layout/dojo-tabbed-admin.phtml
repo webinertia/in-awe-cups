@@ -1,0 +1,261 @@
+<?php
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/**
+ * @var PhpRenderer|HelperTrait $this
+ */
+?>
+<?= $this->doctype() ?>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <?= $this->headTitle($this->appSettings->appName ?? '')->setSeparator(' - ')->setAutoEscape(false) ?>
+
+        <?= $this->headMeta()
+        ->prependName('keywords', $this->appSettings->seoKeyWords ?? '')
+            ->appendName('viewport', 'width=device-width, initial-scale=1.0, shrink-to-fit=no')
+            ->appendHttpEquiv('X-UA-Compatible', 'IE=edge')
+        ?>
+
+        <!-- Le styles -->
+        <?= $this->headLink([
+                'rel'  => 'shortcut icon',
+                'type' => 'image/vnd.microsoft.icon',
+                'href' => $this->basePath() . '/images/favicon.ico',
+        ])
+        ->appendStylesheet($this->basePath('/dashboard/js/dijit/themes/claro/claro.css'))
+        ->appendStylesheet($this->basePath('/dashboard/css/dojo-dashboard.css'));
+        ?>
+        <!-- Scripts -->
+        <?php
+        $this->headScript()->prependFile(
+            $this->basePath('/dashboard/js/dojo/dojo.js'),
+            'text/javascript',
+            ['data-dojo-config' => 'async: true'])->setAllowArbitraryAttributes(true);
+        ?>
+        <?= $this->headScript() ?>
+        <?php
+        //$this->navigation()->menu()->setPartial('partials/dashboard/sidebar-menu');
+        $this->navigation()->setContainer('Laminas\Navigation\Admin');
+        $menuData = $this->jsonifyMenu($this->navigation()->getContainer());
+        //echo $this->dojo()->enable();
+        ?>
+        <script>
+            var dojoConfig = {
+                async: true,
+                selectorEngine: "acme",
+                baseUrl: "/dashboard/js/",
+                packages: [
+                    {name: "dojo", location: "/dojo"}
+                ]
+            };
+            require(
+                [
+                    "aurora/Aurora",
+                    "dojo/request",
+                    "dojo/request/notify",
+                    "dijit/registry",
+                    "dijit/Dialog",
+                    "dijit/layout/BorderContainer",
+                    "dijit/layout/TabContainer",
+                    "dijit/form/Button",
+                    "dojox/layout/ContentPane",
+                    "dijit/layout/StackContainer",
+                    "dijit/layout/StackController",
+                    "dojo/parser",
+                    "dojox/form/Manager",
+                    "dojo/dom",
+                    "dijit/ProgressBar",
+                    "dojo/_base/array",
+                    "dojo/domReady!"
+                ],
+                function(
+                    Aurora,
+                    request,
+                    notify,
+                    registry,
+                    Dialog,
+                    BorderContainer,
+                    TabContainer,
+                    Button,
+                    ContentPane,
+                    StackContainer,
+                    StackController,
+                    parser,
+                    Manager,
+                    dom,
+                    ProgressBar,
+                    array
+                ) {
+            // create an instance of Aurora
+            const aurora = new Aurora({message: "layoutMessage"});
+            // create a system message dialog so that the application can communicate with the user
+            let noticeDialog = new Dialog({
+                    id: "systemMessage",
+                    region: "top",
+                    title: "System Notification"
+                });
+            // create the BorderContainer and attach it to the workSpace div
+            const workSpace = new BorderContainer({
+                design: "headline",
+                "class": "workSpaceLayout"
+            }, "workSpace");
+
+            //workSpace.addChild(noticeDialog);
+            // create the TabContainer
+            const moduleTabs = new TabContainer({
+                region: "center",
+                id: "moduleTabs",
+                tabPosition: "left",
+                "class": "centerPanel"
+            });
+            // add the TabContainer as a child of the BorderContainer
+            workSpace.addChild(moduleTabs);
+            // create and add the BorderContainer edge regions
+            const headerPane = new ContentPane({
+                id: "headerPanel",
+                region: "top",
+                "class": "headerPanel"
+            });
+            notify("load", function(data){
+                //statusBar.set("label", "Loading Data....");
+                //statusBar.set("value", "100%");
+                //console.log("load");
+            });
+            notify("done", function(data){
+                //console.log("done");
+                //statusBar.set("label", "Processing Response..");
+                //statusBar.set("value", "100%");
+                //console.log("notify done - dojo-admin.phtml: " + data);
+                if (data instanceof Error) {
+
+                } else {
+                    try {
+                        if (typeof data === 'object') {
+                            //let response = JSON.parse(data);
+                            //console.log(data.data);
+                            if (typeof data.data === 'string') {
+                                let systemMessage = JSON.parse(data.data);
+                                if (systemMessage.success) {
+                                    noticeDialog.set("content", systemMessage.message);
+                                    noticeDialog.show();
+                                } else if(systemMessage.error) {
+                                    noticeDialog.set("content", systemMessage.message);
+                                    noticeDialog.show();
+                                }
+                            }
+                            //console.log(noticeDialog);
+                        }
+                    } catch (error) {
+                        //console.warn(error);
+                    }
+                }
+            });
+            notify("stop", function(){
+                //console.log("stop");
+                //statusBar.set("label", "System Idle");
+                // statusBar.set("value", "0");
+                // statusBar.set("label", "&nbsp;");
+            });
+            workSpace.addChild(headerPane);
+            // get the json representation of laminas navigation so we can build the UI
+            var navigationData = <?=$menuData?>;
+            //console.log(navigationData);
+            array.forEach(navigationData, function(menuItem){
+                //console.log(menuItem);
+                if (menuItem.pages.length === 0) {
+                    switch (menuItem.dojoType) {
+                        case "Button":
+                            // Add the buttons to the headerPanel
+                            headerPane.addChild(new Button({
+                                label: menuItem.label,
+                                onClick: function() {
+                                    //console.log("menuItem.uri" + menuItem.uri);
+                                    window.location = menuItem.uri;
+                                }
+                            }, "btn"));
+                            break;
+                        case "ContentPane":
+                            // Add moduleTabs for all areas without children
+                            moduleTabs.addChild(
+                                new ContentPane({
+                                    id: menuItem.widgetId,
+                                    href: menuItem.uri,
+                                    title: menuItem.label,
+                                    refreshOnShow: true,
+                                    executeScripts: true,
+                                    scriptHasHooks: true
+                                })
+                            );
+                            break;
+                        default:
+                            break;
+                    }
+                } else if (menuItem.pages.length > 0) {
+                    switch (menuItem.dojoType) {
+                        case "TabContainer":
+                            const pane = new ContentPane({
+                                id: menuItem.widgetId,
+                                title: menuItem.label,
+                                refreshOnShow: true,
+                                executeScripts: true,
+                                scriptHasHooks: true
+                            });
+                            var moduleManager = new TabContainer({
+                                tabPosition: "left",
+                                doLayout: true,
+                            });
+                            array.forEach(menuItem.pages, function(child) {
+                                switch(child.dojoType) {
+                                    case "TabContainer":
+                                        let moduleSections = new TabContainer({
+                                            id: child.widgetId,
+                                            title: child.label,
+                                            tabPosition: "top",
+                                            doLayout: true
+                                        });
+                                        array.forEach(child.pages, function(grandChild) {
+                                            moduleSections.addChild(new ContentPane({
+                                                id: grandChild.widgetId,
+                                                title: grandChild.label,
+                                                href: grandChild.uri,
+                                                refreshOnShow: false,
+                                                executeScripts: true,
+                                                scriptHasHooks: true
+                                            }));
+                                        });
+                                        moduleManager.addChild(moduleSections);
+                                    break;
+                                    case "ContentPane":
+                                        let parent = new ContentPane({
+                                            id: child.widgetId,
+                                            title: child.label,
+                                            href: child.uri,
+                                            refreshOnShow: false,
+                                            executeScripts: true,
+                                            scriptHasHooks: true
+                                        });
+                                        moduleManager.addChild(parent);
+                                    break;
+                                }
+                                pane.addChild(moduleManager);
+                            });
+                            moduleTabs.addChild(pane);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
+            workSpace.startup();
+            });
+        </script>
+    </head>
+    <body class="claro">
+        <div id="workSpace" class="appLayout"></div>
+    </body>
+</html>

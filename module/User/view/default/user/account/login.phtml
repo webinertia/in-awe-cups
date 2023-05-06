@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+$title = 'Login';
+$this->headTitle($title);
+// echo $this->translate('user', 'user');
+?>
+
+<?php
+// $form->setAttribute('action', $this->url('user', ['action' => 'add']));
+// $form->prepare();
+$buttonOptions = [
+    'button_options' => [
+        'class'     => 'btn btn-primary btn-sm',
+        'link_text' => 'Reset Password',
+    ],
+];
+?>
+<div class="jumbotron">
+    <div class="card-deck">
+        <div class="card">
+            <div class="card-header">
+            <?php
+            // $this->aclAwareControl(
+            //         $this->user,
+            //         'users',
+            //         'register.view',
+            //         'button',
+            //         $this->url(
+            //             'user/account/password',
+            //             [
+            //                 'action' => 'reset',
+            //                 'step'   => 'submit-email',
+            //             ]), $buttonOptions);
+                ?>
+            </div>
+            <div class="card-body">
+                <p>
+                <?php
+                    if ($this->config('app_settings')['security']['enable_login'] && isset($this->form)) {
+                        $this->form->addSubmit(-1, 'Login');
+                        echo $this->bootstrapForm($this->form);
+                    }
+                    else {
+                        echo 'Login disabled';
+                    }
+                ?>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

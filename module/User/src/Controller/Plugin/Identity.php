@@ -44,7 +44,7 @@ final class Identity extends AbstractPlugin
     public function getIdentity(): UserService
     {
         if ($this->authenticationService->hasIdentity()) {
-            return $this->userInterface->fetchByColumn('userName', $this->authenticationService->getIdentity());
+            return $this->userInterface->fetchRow('userName', $this->authenticationService->getIdentity());
         }
         return $this->userInterface;
     }

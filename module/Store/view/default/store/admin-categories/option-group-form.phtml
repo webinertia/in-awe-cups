@@ -1,0 +1,46 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<div id="currentOptionValue"></div>
+<?php
+if (isset($this->form)) {
+    echo $this->dijitForm($this->form);
+}
+?>
+<script>
+require(
+    [
+        "dojo/dom",
+        "dojo/request",
+        "dojo/on",
+        "dojox/form/Manager",
+        "dijit/registry",
+        "dijit/form/Select",
+        "dijit/form/Form",
+        "dijit/form/Button",
+        "dijit/form/ValidationTextBox",
+        "dojox/validate",
+        "dojox/validate/web",
+        "dojo/domReady!"
+    ], function(dom, request, on, Manager, registry, Select, dijitForm, Button, ValidationTextBox){
+    // registry.byId should target the widgetId configured in the module.config admin navigation array
+    // const aurora = new Aurora();
+    // aurora.set("serviceManager", registry);
+    console.log('dojo', dojo);
+    dojo.connect(registry.byId('optionGroupUtil'), "onLoad", function() {
+        // const storeWorkspace = registry.byId("storeWorkspace");
+        // // stack container content pane we are connected too
+        console.info("connected to optionGroupUtil in option-group-form.phtml");
+    });// end dojo.connect
+});
+</script>

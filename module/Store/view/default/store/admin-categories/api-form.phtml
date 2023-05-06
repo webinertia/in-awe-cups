@@ -1,0 +1,56 @@
+<?php
+
+/*
+ * phpcs:ignoreFile
+ */
+
+declare(strict_types=1);
+
+use Laminas\Form\View\HelperTrait;
+use Laminas\View\Renderer\PhpRenderer;
+
+/** @var PhpRenderer|HelperTrait $this */
+?>
+<?php
+if (isset($this->form)) {
+    echo $this->dijitForm($this->form);
+}
+?>
+<script>
+// require(
+//     [
+//         "aurora/Aurora",
+//         "dijit/Editor",
+//         "dojo/dom",
+//         "dojo/request",
+//         "dojo/on",
+//         "dojox/form/Manager",
+//         "dijit/registry",
+//         "dijit/form/FilteringSelect",
+//         "dijit/form/ComboBox",
+//         "dojox/layout/ContentPane",
+//         "dijit/form/Form",
+//         "dijit/form/Button",
+//         "dijit/form/Select",
+//         "dijit/form/ValidationTextBox",
+//         "dojox/validate/web",
+//         "dijit/_editor/RichText",
+//         "dijit/_editor/plugins/FontChoice",
+//         "dijit/_editor/plugins/TextColor",
+//         "aurora/editor/plugins/Save",
+//         "dojo/domReady!",
+//         "dijit/_WidgetBase",
+//         "dijit/form/_ButtonMixin",
+//         "dijit/form/_FormWidgetMixin"
+//     ], function(Aurora, Editor, dom, request, on, Manager, registry, FilteringSelect, ComboBox, ContentPane, dijitForm, Button,
+//                 Select, ValidationTextBox){
+//     // registry.byId should target the widgetId configured in the module.config admin navigation array
+//     const aurora = new Aurora();
+//     aurora.set("serviceManager", registry);
+//     dojo.connect(registry.byId("storeWorkspace"), "onLoad", function() {
+//         // const storeWorkspace = registry.byId("storeWorkspace");
+//         //alert("connected to storeWorkspace in create category action");
+
+//     });// end dojo.connect
+// });
+</script>

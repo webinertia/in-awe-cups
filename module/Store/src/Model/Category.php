@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Store\Model;
 
-use App\Db\TableGateway\AbstractGatewayModel;
+use App\Model\AbstractModel;
 use App\Model\ModelInterface;
 use App\Model\ModelTrait;
 use Laminas\Db\ResultSet\ResultSetInterface;
+use Laminas\Db\Sql\Expression;
+use Laminas\Db\Sql\Predicate\PredicateSet;
 use Laminas\Db\Sql\Select;
 use Laminas\Db\Sql\Sql;
 use Laminas\Db\Sql\Where;
+use Laminas\Stdlib\ArrayUtils;
 use Laminas\Filter\HtmlEntities;
 use Laminas\Filter\StripTags;
 use Laminas\Filter\StringTrim;
@@ -22,29 +25,124 @@ use Laminas\InputFilter\InputFilter;
 use Laminas\Validator\Db\NoRecordExists;
 use Laminas\Validator\StringLength;
 use Store\Db\TableGateway\CategoriesTable;
+use Store\Model\Product;
 
 use function count;
 use function explode;
 use function is_array;
+use function strpos;
 
-final class Category extends AbstractGatewayModel implements ModelInterface
+final class Category extends AbstractModel implements ModelInterface
 {
     use ModelTrait;
 
     /** @var ResultSet|array $children */
     protected $children;
 
-    public function __construct(?CategoriesTable $categoriesTable = null)
+    /** @var string $p */
+    private $p;
+    /** @var string $i */
+    private $i;
+    /** @var string $t */
+    private $t;
+
+    public function __construct(?Product $product, ?array $config, ?CategoriesTable $categoriesTable = null)
     {
-        parent::__construct([]);
+        parent::__construct([], $config);
         if ($categoriesTable !== null) {
             $this->gateway = $categoriesTable;
+            $this->product = $product->getGateway();
+            $this->p = $this->product->getTable();
+            $this->i = $config['db']['store_image_table_name'];
+            $this->t = $this->gateway->getTable();
         }
     }
 
-    public function fetchSelectValueOptions()
+    public function fetchMenu(bool $fetchArray = true): ResultSetInterface|array
     {
-        return $this->gateway->fetchSelectValueOptions();
+        $where = new Where();
+        $where->equalTo('active', 1);
+        $where->notEqualTo('isBundle', 1);
+        if (! $fetchArray) {
+            return $this->gateway->select($where);
+        }
+        return $this->gateway->select($where)->toArray();
+    }
+
+    public function fetchAllWithProductCountAndImages(
+        bool $forHome = false,
+        bool $withBundles = false,
+        bool $fetchArray = true
+        ): ResultSetInterface|array {
+
+        $where = new Where();
+        $select = $this->gateway->getSql()->select();
+        $select->join(
+            $this->p,
+            $this->p . '.category = ' . $this->t . '.label',
+            ['category'],
+        );
+        $select->join(
+            $this->i,
+            $this->t . '.id = ' . $this->i . '.categoryId',
+            ['fileName'],
+            Select::JOIN_LEFT_OUTER,
+        );
+        $select->group([$this->t . '.label', $this->i . '.type']);
+        $select->columns([
+            'productCount' => new Expression('COUNT(category)'),
+            'id',
+            'title',
+            'description'
+        ]);
+        // Limit this to only categories that should be shown onHome
+        if ($forHome) {
+            $where->equalTo($this->t . '.onHome', 1);
+        }
+        // should we include categories that are bundles?
+        if ($withBundles) {
+            $where->equalTo('isBundle', 1);
+        } else {
+            $where = new Where(null, PredicateSet::COMBINED_BY_OR);
+            $where->equalTo('isBundle', 0);
+            $where->isNull('isBundle');
+        }
+        $select->where($where);
+        $result = $this->gateway->selectWith($select);
+        // send an array
+        if ($fetchArray) {
+            return $result->toArray();
+        }
+        return $result;
+    }
+
+    public function fetchSelectValueOptions(bool $idAsValue = true, bool $fetchBundles = false)
+    {
+        $where = new Where();
+        if ($fetchBundles) {
+            if (! $idAsValue) {
+                //$idAsValue = true; // if were getting bundles then we just need the ids as values
+            }
+            $where->equalTo('isBundle', 1);
+            $resultSet = $this->gateway->select($where);
+        } else {
+            $where = new Where(null, PredicateSet::COMBINED_BY_OR);
+            $where->equalTo('isBundle', 0);
+            $where->isNull('isBundle');
+            $resultSet = $this->gateway->select($where);
+        }
+        $data = [];
+        $i = 0;
+        foreach($resultSet as $row) {
+            if ($idAsValue) {
+                $data[$row->id] = $row->label;
+            } else {
+                ++$i;
+                $data[$i]['label'] = $row->label;
+                $data[$i]['value'] = $row->label;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -53,32 +151,32 @@ final class Category extends AbstractGatewayModel implements ModelInterface
      * @param  null|array $joins
      * @return int
      */
-    public function save($model, $where = null, ?array $joins = null): int
+    public function save(Category|array $set, ?array $where = null, ?array $joins = null): int
     {
-        if ($model->parentId === 'No Parent') {
-            unset($model->parentId);
+        if ($set instanceof Category) {
+            $set = $set->getArrayCopy();
         }
-        $set = $model->getArrayCopy();
-        $filter = $this->getInputFilter();
-        if ($filter instanceof InputFilter) {
-            $filter->setData($set);
-            if ($filter->isValid()) {
-                $set = $filter->getValues();
-            } else {
-                $errors = $filter->getMessages();
-            }
+
+        if ($set['parentId'] === 'No Parent' || $set['parentId'] === '') {
+            unset($set['parentId']);
         }
-        if (isset($model->id)) {
-            $result = $this->gateway->update($set, $where, $joins);
+
+        if (isset($set['id']) && $where !== null) {
+            return $this->gateway->update($set, $where, $joins);
         } else {
-            $result = $this->gateway->insert($set);
+            return $this->gateway->insert($set);
         }
-        return $result;
     }
 
-    public function fetchAllWithChildren(): ResultSetInterface|array
+    public function fetchByTitleWithChildren(string $title, $fetchArray = true): ResultSetInterface|array
     {
 
+    }
+
+    /** @deprecated */
+    public function fetchAllWithChildren(bool $onlyActive = true, bool $fetchArray = true): ResultSetInterface|array
+    {
+        $where = new Where();
         $categories = $this->gateway->select()->toArray();
         $count = count($categories);
 
@@ -93,7 +191,7 @@ final class Category extends AbstractGatewayModel implements ModelInterface
         return $categories;
     }
 
-    public function fetchChildren($parentId)
+    public function fetchChildren(int $parentId)
     {
         /** @var Sql $sql */
         $sql = $this->gateway->getSql();
@@ -104,15 +202,166 @@ final class Category extends AbstractGatewayModel implements ModelInterface
         return $this->gateway->selectWith($select);
     }
 
-    public function fetchTreeStore(string $idColumn = 'label', int|string $catId)
+    public function fetchBundles(bool $fetchProducts = true, $fetchArray = true): ResultSetInterface|array
+    {
+        $where  = new Where();
+        $select = $this->gateway->getSql()->select();
+        $where->isNotNull('parentId');
+        $where->equalTo('isBundle', 1);
+
+        $select->join(
+            $this->p,
+            $this->p . '.bundleLabel = ' . $this->t . '.label',
+            [
+                'id', 'userId', 'bundleLabel', 'category', 'label', 'title', 'description', 'cost', 'weight', 'manufacturer', 'sku',
+                'createdDate', 'active', 'onSale', 'discount', 'saleStartDate', 'saleEndDate', 'onHome', 'data'
+            ],
+            Select::JOIN_RIGHT_OUTER
+            //Select::JOIN_LEFT_OUTER,
+        );
+
+        $select->join(
+            $this->i,
+            $this->t . '.id = ' . $this->i . '.categoryId',
+            ['categoryImage' => 'fileName'],
+            //Select::JOIN_LEFT,
+        );
+
+        $select->columns([
+            'categoryLabel'    => 'label',
+            'categoryId'       => 'id',
+            'categoryTitle'    => 'title',
+        ]);
+        $result = $this->gateway->select($where);
+        if (! $fetchArray) {
+            return $result;
+        }
+        return $result->toArray();
+    }
+
+    public function fetchAllProductsByMultiColumns(
+        bool $fetchArray,
+        bool $onlyActive,
+        ...$columns
+        ): ResultSetInterface|array {
+
+        $where = new Where();
+        // ...columns are expected to be columns from the category table
+        // the could be also be from the joined tables but they would need to be be of the form tableName.columnName => $value
+        if (ArrayUtils::isList($columns)) {
+            foreach ($columns as $key => $whereArray) {
+                foreach ($whereArray as $column => $value) {
+                    $where->equalTo(
+                        (strpos($column, '.') !== false) ? $column : $this->t . '.' . $column,
+                        $value
+                    );
+                }
+            }
+        }
+        // if ($onlyActive) {
+        //     $where->equalTo($this->t . '.active', 1);
+        //     $where->equalTo($this->p . '.active', 1);
+        // }
+        $select = new Select();
+        $select->from(['c' => $this->t]);
+        $select->join(
+            ['p' => $this->p],
+            'c.label = p.category',
+            [
+                'id', 'userId', 'bundleLabel', 'category',
+                //'imgCount' => new Expression('COUNT("fileName") >= 1')
+            ]
+        );
+        $select->join(
+            ['i' => $this->i],
+            'p.id = i.productId',
+            [
+                'fileName',
+            ],
+            Select::JOIN_RIGHT
+        );
+        $where->greaterThanOrEqualTo('p.id', 0);
+        $select->columns([
+            'label'
+        ]);
+        //$select->order(['c.label ASC', 'p.label ASC', 'i.fileName ASC']);
+        $select->where($where);
+        $str = $select->getSqlString();
+        if (! $fetchArray) {
+            return $this->gateway->selectWith($select);
+        }
+        return $this->gateway->selectWith($select)->toArray();
+    }
+
+    public function fetchByTitleWithAllProducts(
+        string $title,
+        $fetchArray = true,
+        bool $onlyActive = true,
+        bool $onSale = true,
+        bool $isBundle = false
+    ): ResultSetInterface|array {
+        // TODO: Fixme This is kind hacky and will be fixed in the next iteration, were looking for bundle in the title..... I know, hacky
+        $search = strpos($title, 'bundle');
+        if (! $search === false && ! $isBundle) {
+            $isBundle = true;
+        }
+        $where = new Where();
+        $where->equalTo($this->t . '.title', $title);
+
+        if ($onlyActive) {
+            $where->equalTo($this->t . '.active', 1);
+            $where->equalTo($this->p . '.active', 1);
+        }
+        $where->greaterThanOrEqualTo($this->p .'.id', 0);
+        $select = $this->gateway->getSql()->select();
+        $select->join(
+            $this->p,
+            ! $isBundle ? $this->p . '.category = ' . $this->t . '.label' : $this->p . '.bundleLabel = ' . $this->t . '.label',
+            [
+                'id', 'userId', 'bundleLabel', 'category', 'label', 'title', 'description', 'cost', 'weight', 'manufacturer', 'sku',
+                'createdDate', 'active', 'onSale', 'discount', 'saleStartDate', 'saleEndDate', 'onHome', 'data'
+            ],
+            Select::JOIN_RIGHT_OUTER
+            //Select::JOIN_LEFT_OUTER,
+        );
+        $select->join(
+            $this->i,
+            $this->p . '.id = ' . $this->i . '.productId',
+            ['productImage' => 'fileName'],
+            //Select::JOIN_LEFT,
+        );
+        $select->columns([
+            'categoryLabel'    => 'label',
+            'categoryId'       => 'id',
+            'categoryTitle'    => 'title',
+            'parentCategoryId' => 'parentId',
+        ]);
+        $select->where($where);
+        if (! $fetchArray) {
+            return $this->gateway->selectWith($select);
+        }
+        return $this->gateway->selectWith($select)->toArray();
+    }
+
+    public function fetchTreeStore(int|string $catId, string $idColumn = 'label')
     {
         $select = $this->gateway->getSql()->select();
         $select->columns(['id', 'label', ]);
     }
 
-    public function fetchGridStore(int|string $rootId = null)
+    public function fetchGridsStore(bool $filterBundles = true, bool $fetchArray = true): array
     {
-
+        $where  = new Where();
+        $where->notEqualTo('title', 'bundles');
+        if ($filterBundles) {
+            $where->isNull('isBundle');
+            $where->or->equalTo('isBundle', 0);
+        }
+        $result = $this->gateway->select($where);
+        if (! $fetchArray) {
+            return $result;
+        }
+        return $result->toArray();
     }
 
     public function getInputFilter()
@@ -152,10 +401,6 @@ final class Category extends AbstractGatewayModel implements ModelInterface
         //             ],
         //         ],
         //     ]);
-        //     $this->inputFilter->add([
-        //         'title' => 'label'
-        //     ]);
-
         // return $this->inputFilter;
     }
 }

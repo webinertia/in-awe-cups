@@ -2,16 +2,16 @@
 
 namespace Store\Form;
 
-use App\Form\BaseForm;
+use Dojo\Form;
 use Store\Form\Fieldset\ImageUpload;
 use Store\Form\Fieldset\ProductInfo;
 
-class ProductForm extends BaseForm
+class ProductForm extends Form
 {
     public function init()
     {
         $this->add([
-            'name' => 'image-data',
+            'name' => 'file-data',
             'type' => ImageUpload::class,
         ])->add([
             'name' => 'product-data',

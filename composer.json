@@ -14,7 +14,7 @@
         "laminas/laminas-component-installer": "^2.6",
         "laminas/laminas-development-mode": "^3.2",
         "laminas/laminas-mvc": "^3.1.1",
-        "laminas/laminas-db": "2.15.0",
+        "laminas/laminas-db": "2.17.0",
         "laminas/laminas-mvc-form": "^2.0.0",
         "laminas/laminas-json": "^3.2",
         "laminas/laminas-log": "^2.13.1",
@@ -30,7 +30,11 @@
         "laminas/laminas-paginator": "^2.12",
         "laminas/laminas-paginator-adapter-laminasdb": "^1.2",
         "laminas/laminas-authentication": "2.11.0",
-        "webinertia/dojo": "0.0.1"
+        "webinertia/dojo": "0.0.1",
+        "ramsey/uuid": "^4.7",
+        "braintree/braintree_php": "^6.11",
+        "laminas/laminas-hydrator": "4.13.0",
+        "webinertia/limatus": "^0.0.11"
     },
     "autoload": {
         "psr-4": {
@@ -38,6 +42,7 @@
             "ContentManager\\": "module/ContentManager/src/",
             "User\\": "module/User/src/",
             "Store\\": "module/Store/src/",
+            "Payment\\": "module/Payment/src/",
             "Widget\\": "module/Widget/src/",
             "InAweCups\\": "module/InAweCups/src/"
         }

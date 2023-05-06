@@ -7,20 +7,19 @@ namespace Store\Form\Fieldset;
 use Dojo\Form\Element\Editor;
 use Dojo\Form\Element\ComboBox;
 use Dojo\Form\Element\TextBox;
-use Laminas\Db\Adapter\AdapterAwareInterface;
-use Laminas\Db\Adapter\AdapterAwareTrait;
-use Laminas\Filter\Callback;
+use Dojo\Form\Element\ResetButton;
+use Dojo\Form\Element\ValidationTextBox;
 use Laminas\Filter\HtmlEntities;
 use Laminas\Filter\StripTags;
 use Laminas\Filter\StringTrim;
 use Laminas\Filter\StringToLower;
 use Laminas\Filter\Word\SeparatorToDash;
 use Laminas\Filter\ToInt;
+use Laminas\Filter\ToNull;
 use Laminas\Filter\UpperCaseWords;
+use Laminas\Form\Element\Checkbox;
 use Laminas\Form\Element\Hidden;
 use Laminas\Form\Element\Select;
-use Laminas\Form\Element\Text;
-use Laminas\Form\Element\Textarea;
 use Laminas\Form\Fieldset;
 use Laminas\InputFilter\InputFilterProviderInterface;
 use Laminas\Validator\Db\NoRecordExists;
@@ -45,9 +44,10 @@ final class CategoryInfo extends Fieldset implements InputFilterProviderInterfac
     {
         $this->add([
             'name' => 'label',
-            'type' => TextBox::class,
+            'type' => ValidationTextBox::class,
             'attributes' => [
-                'placeholder' => 'Category Name:',
+                'placeholder'     => 'Category Name:',
+                'data-dojo-props' => 'validator:dojox.validate.isText, constraints:{minLength:1, maxLength:255}, invalidMessage:\'Category name must be between 1 and 255 Characters\'',
             ],
         ])->add([
             'id'   => 'parentCategoryId',
@@ -59,6 +59,33 @@ final class CategoryInfo extends Fieldset implements InputFilterProviderInterfac
             'options' => [
                 'empty_option'  => 'No Parent',
                 'value_options' => $this->categoryValueOptions,
+            ],
+        ])->add([
+            'name' => 'active',
+            'type' => Checkbox::class,
+            'attributes' => [
+                'data-dojo-type' => 'dijit/form/CheckBox',
+            ],
+            'options' => [
+                'label' => 'Active ',
+            ],
+        ])->add([
+            'name' => 'isBundle',
+            'type' => Checkbox::class,
+            'attributes' => [
+                'data-dojo-type' => 'dijit/form/CheckBox',
+            ],
+            'options' => [
+                'label' => 'Product Bundle ',
+            ],
+        ])->add([
+            'name' => 'onHome',
+            'type' => Checkbox::class,
+            'attributes' => [
+                'data-dojo-type' => 'dijit/form/CheckBox',
+            ],
+            'options' => [
+                'label' => 'Show On Home Page? ',
             ],
         ])->add([
             'name' => 'description',
@@ -100,6 +127,14 @@ final class CategoryInfo extends Fieldset implements InputFilterProviderInterfac
             ],
             'parentId' => [
                 'required' =>  false,
+                'filters' => [
+                    [
+                        'name' => ToNull::class,
+                        'options' => [
+                            'type' => ToNull::TYPE_ALL,
+                        ],
+                    ]
+                ],
             ],
         ];
     }

@@ -56,4 +56,9 @@ return [
             Model\ImageSlider::class => Model\Factory\ImageSliderModelFactory::class,
         ],
     ],
+    'view_manager' => [
+        'template_path_stack'      => [
+            __DIR__ . '/../view',
+        ],
+    ],
 ];

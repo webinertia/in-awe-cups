@@ -398,6 +398,7 @@ return [
     'form_elements'      => [
         'factories' => [
             Form\Element\RoleSelect::class           => Form\Element\Factory\RoleSelectFactory::class,
+            Form\Element\UserId::class               => Form\Element\Factory\UserIdFactory::class,
             Form\Fieldset\AcctDataFieldset::class    => Form\Fieldset\Factory\AcctDataFieldsetFactory::class,
             Form\Fieldset\LoginFieldset::class       => Form\Fieldset\Factory\LoginFieldsetFactory::class,
             Form\Fieldset\PasswordFieldset::class    => Form\Fieldset\Factory\PasswordFieldsetFactory::class,
@@ -468,6 +469,11 @@ return [
             'items_per_page' => 5,
             'display_groups' => 'admin',
             'widget_name'    => 'Administrators',
+        ],
+    ],
+    'view_manager' => [
+        'template_path_stack'      => [
+            __DIR__ . '/../view',
         ],
     ],
 ];

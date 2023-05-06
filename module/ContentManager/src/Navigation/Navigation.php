@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ContentManager\Navigation;
 
+use ContentManager\Navigation\NavigationInterface;
 use Laminas\Navigation\Exception\InvalidArgumentException;
 use Traversable;
 
@@ -12,7 +13,7 @@ use function is_array;
 /**
  * A simple container class for {@link Laminas\Navigation\Page} pages
  */
-class Navigation extends AbstractContainer
+class Navigation extends AbstractContainer implements NavigationInterface
 {
     /**
      * Creates a new navigation container
