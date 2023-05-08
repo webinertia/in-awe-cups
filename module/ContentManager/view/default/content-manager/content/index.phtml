@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 if (isset($this->page)) :
 ?>
-<div class="jumbotron">
+<div class="bd-secondary">
     <?php
     if($this->acl()->isAllowed($this->identity()->getIdentity(), 'page', 'edit')) :
     ?>
@@ -30,7 +30,7 @@ if (isset($this->page)) :
 <?php
     if (isset($this->page->pages)) :
 ?>
-<div class="card-deck">
+<div class="card">
     <?php
         foreach ($this->page->pages as $page) :
     ?>
@@ -40,14 +40,11 @@ if (isset($this->page)) :
             if($this->acl()->isAllowed($this->identity()->getIdentity(), 'page', 'edit')) :
             ?>
             <a
-            class="mdi mdi-pencil"
-            data-toggle="modal"
-            data-target="#editorModal"
-            data-href="<?=$this->url('admin.content/manager/edit', ['title' => $page->title])?>"
-            href="#">
+            class="app-control mdi mdi-pencil"
+            href="<?=$this->url('admin.content/manager/edit', ['title' => $page->title])?>">
             </a>
             <a
-            class="delete-page mdi mdi-delete-forever text-danger"
+            class="app-control delete-page mdi mdi-delete-forever text-danger"
             href="<?=$this->url('admin.content/manager/delete', ['id' => $page->id])?>">
             </a>
             <?php endif; ?>
@@ -69,17 +66,21 @@ else :
 <?php
 endif;
 ?>
-    <div class="modal fade" id="editorModal" tabindex="-1" role="dialog" aria-labelledby="editorModalLabel" aria-hidden="true">
+    <div
+    class="modal"
+    id="editorModal"
+    tabindex="-1"
+    aria-labelledby="editorModalLabel"
+    aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editorModalLabel">Edit Page <?=$page->lagel?></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div id="work-space" class="modal-body"></div>
-
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editorModalLabel">Edit Page <?=$page->lagel?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="work-space" class="modal-body">
+                    this is working
+                </div>
             </div>
         </div>
     </div>

@@ -12,7 +12,8 @@ use Laminas\Filter\ToNull;
 use Laminas\Form\Element\Checkbox;
 use Laminas\Form\Element\Hidden;
 use Laminas\Form\Element\Number;
-use Laminas\Form\Element\Text;
+use Dojo\Form\Element\TextBox;
+use Dojo\Form\Element\Editor;
 use Laminas\Form\Element\Textarea;
 use Laminas\Form\Fieldset;
 use Laminas\Hydrator\ArraySerializableHydrator;
@@ -46,7 +47,7 @@ final class PageFieldset extends Fieldset implements InputFilterProviderInterfac
         }
         $this->add([
             'name'    => 'label',
-            'type'    => Text::class,
+            'type'    => TextBox::class,
             'options' => ['label' => 'Page Label (Will show in the menu)'],
         ])
         ->add([
@@ -66,7 +67,7 @@ final class PageFieldset extends Fieldset implements InputFilterProviderInterfac
         ])
         ->add([
             'name' => 'content',
-            'type' => Textarea::class,
+            'type' => Editor::class,
         ]);
     }
 

@@ -18,6 +18,7 @@ use Laminas\Filter\StringToLower;
 use Laminas\Filter\Word\SeparatorToDash;
 use Laminas\Form\FormElementManager;
 use Laminas\Navigation\Navigation;
+use Laminas\View\Model\JsonModel;
 use Laminas\View\Model\ViewModel;
 use RuntimeException;
 
@@ -30,9 +31,7 @@ final class AdminController extends AbstractAppController implements AdminContro
 
     public function createAction(): ViewModel
     {
-        if ($this->request->isXmlHttpRequest()) {
-            $this->view->setTerminal(true);
-        }
+        $this->ajaxAction();
         $form = $this->getService(FormElementManager::class)->build(
             PageForm::class,
             ['mode' => FormInterface::CREATE_MODE]
@@ -56,9 +55,8 @@ final class AdminController extends AbstractAppController implements AdminContro
                     if (! $result) {
                         throw new RuntimeException('Page Not saved');
                     }
-                    $headers = $this->response->getHeaders();
-                    $headers->addHeaderLine('Content-Type', 'application/json');
-                    $this->view->setVariables(['success' => true, 'message' => ['message' => 'Page saved']]);
+                    $this->view = new JsonModel();
+                    $this->view->setVariables(['message' => 'Page saved']);
                 } catch (RuntimeException $e) {
                     $this->getEventManager()->trigger(LogEvent::ERROR, $e->getMessage());
                 }

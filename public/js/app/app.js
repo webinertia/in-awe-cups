@@ -36,8 +36,17 @@ function(Stateful, declare, topic, Deferred, request, notify, dom, domClass, que
                         topic.publish("system/message", {message: "Test message to test the alert system", type: "danger"});
                     }
                 };
-                let mainNav = dom.byId("main-nav");
+                let appControlHandler = {
+                    id: 'appControlHandler',
+                    onClick: evt => {
+                       // evt.preventDefault();
+                        alert('handler triggered');
+                    }
+                };
+                let mainNav = dom.byId('main-nav');
                 on(mainNav, ".nav-link:click", lang.hitch(menuHandler, "onClick"));
+                let workSpace = dom.byId('app-workspace');
+                on(workSpace, '.app-control:click', lang.hitch(appControlHandler, 'onClick'));
             }
         }
     });

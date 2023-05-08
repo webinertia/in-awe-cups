@@ -13,14 +13,14 @@ if (isset($this->page)) :
     if($this->acl()->isAllowed($this->identity()->getIdentity(), 'page', 'edit')) :
     ?>
     <a
-    class="mdi mdi-pencil"
+    class="app-control mdi mdi-pencil"
     data-toggle="modal"
     data-target="#editorModal"
     data-href="<?=$this->url('admin.content/manager/edit', ['title' => $this->page->title])?>"
     href="#">
     </a>
     <a
-    class="delete-page mdi mdi-delete-forever text-danger"
+    class="app-control delete-page mdi mdi-delete-forever text-danger"
     href="<?=$this->url('admin.content/manager/delete', ['id' => $this->page->id])?>">
     </a>
     <?php endif; ?>
@@ -40,14 +40,14 @@ if (isset($this->page)) :
             if($this->acl()->isAllowed($this->identity()->getIdentity(), 'page', 'edit')) :
             ?>
             <a
-            class="mdi mdi-pencil"
+            class="app-control mdi mdi-pencil"
             data-toggle="modal"
             data-target="#editorModal"
             data-href="<?=$this->url('admin.content/manager/edit', ['title' => $page->title])?>"
             href="#">
             </a>
             <a
-            class="delete-page mdi mdi-delete-forever text-danger"
+            class="app-control delete-page mdi mdi-delete-forever text-danger"
             href="<?=$this->url('admin.content/manager/delete', ['id' => $page->id])?>">
             </a>
             <?php endif; ?>
