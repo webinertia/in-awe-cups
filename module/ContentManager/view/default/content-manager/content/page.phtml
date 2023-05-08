@@ -7,7 +7,7 @@ use Laminas\View\Renderer\PhpRenderer;
 $this->headMeta()->prependName('description', $this->page->description);
 $this->headTitle($this->page->label);
 ?>
-<div class="jumbotron">
+<div class="bg-secondary">
     <div class="card-deck">
         <div class="card">
             <div class="card-header">
@@ -15,11 +15,8 @@ $this->headTitle($this->page->label);
             if($this->acl()->isAllowed($this->identity()->getIdentity(), 'page', 'edit')) :
             ?>
             <a
-            class="mdi mdi-pencil"
-            data-toggle="modal"
-            data-target="#editorModal"
-            data-href="<?=$this->url('admin.content/manager/edit', ['title' => $this->page->title])?>"
-            href="#">
+            class="app-control mdi mdi-pencil"
+            href="<?=$this->url('admin.content/manager/edit', ['title' => $this->page->title])?>">
             </a>
             <a
             class="delete-page mdi mdi-delete-forever text-danger"
